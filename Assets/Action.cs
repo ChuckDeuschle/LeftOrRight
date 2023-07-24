@@ -19,6 +19,7 @@ public class Action : MonoBehaviour
 
     public void Play(GameManager _gameManager)
     {
+        // Complete Action
         switch (ActionType)
         {
             case Actions.Attack:

@@ -297,9 +297,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardName: 
-  leftOption: 
-  rightOption: 
-  cardText: {fileID: 0}
+  leftAction: {fileID: 0}
+  rightAction: {fileID: 0}
+  cardText: {fileID: 9143594126114185572}
 --- !u!114 &-2208179063103297702
 MonoBehaviour:
   m_ObjectHideFlags: 0

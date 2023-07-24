@@ -33,22 +33,31 @@ public class DropZone : MonoBehaviour, IDropHandler
             if (zoneSide == ZoneSide.Left)
             {
                 playedCard.leftAction.Play(gameManager);
-                gameManager.CheckEndConditions();
-                gameManager.discardPile.Add(playedCard);
                 playedCard.gameObject.SetActive(false);
-                gameManager.DrawCard();
+                gameManager.discardPile.Add(playedCard);
+                if (gameManager.deck.Count == 0)
+                {
+                    gameManager.gameState = GameManager.GameState.EnemyTurn;
+                }
+                else
+                {
+                    gameManager.DrawCard();
+                }
             }
             else if (zoneSide == ZoneSide.Right)
             {
                 playedCard.rightAction.Play(gameManager);
-                gameManager.CheckEndConditions();
-                gameManager.discardPile.Add(playedCard);
                 playedCard.gameObject.SetActive(false);
-                gameManager.DrawCard();
+                gameManager.discardPile.Add(playedCard);
+                if (gameManager.deck.Count == 0)
+                {
+                    gameManager.gameState = GameManager.GameState.EnemyTurn;
+                }
+                else
+                {
+                    gameManager.DrawCard();
+                }
             }
-
-            gameManager.UpdateHealthDisplay();
-            gameManager.UpdateStatusDisplays();
         }
     }
 }

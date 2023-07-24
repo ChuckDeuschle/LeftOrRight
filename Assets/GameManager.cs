@@ -25,8 +25,8 @@ public class GameManager : MonoBehaviour
     public GameObject WinPanel;
 
 
-    enum GameState { PlayerTurn, EnemyTurn, Win, Lose };
-    GameState gameState;
+    public enum GameState { PlayerTurn, EnemyTurn, Win, Lose };
+    public GameState gameState;
 
     private void Start()
     {
@@ -53,24 +53,31 @@ public class GameManager : MonoBehaviour
         UpdateStatusDisplays();
     }
 
-    private void Update()
+    public void Update()
     {
+        if (player.currentHealth <= 0)
+        {
+            gameState = GameState.Lose;
+        }
+        else if (currentEnemy.currentHealth <= 0)
+        {
+            gameState = GameState.Win;
+        }
+
         switch (gameState)
         {
             case GameState.PlayerTurn:
                 // Handle player's turn logic
                 // If player ends turn or runs out of actions, set gameState to EnemyTurn
+                if (deck.Count == 0 && currentCard.activeSelf == false)
+                {
+                    DrawCard();
+                }
                 break;
             case GameState.EnemyTurn:
                 // Handle enemy's turn logic
-                // Attack player 
-                int damage = (currentRound * 10);
-                player.currentHealth -= damage < player.shield ? 0 : damage - player.shield;
-                // Set player shield to zero
-                player.shield = 0;
                 // If enemy ends turn or runs out of actions, set gameState to PlayerTurn
-                UpdateHealthDisplay();
-                UpdateStatusDisplays();
+                currentEnemy.EnemyAction(this);
                 gameState = GameState.PlayerTurn;
                 break;
             case GameState.Win:
@@ -84,6 +91,9 @@ public class GameManager : MonoBehaviour
                 GameOverPanel.SetActive(true);
                 break;
         }
+
+        UpdateHealthDisplay();
+        UpdateStatusDisplays();
     }
 
     public void DrawCard()
@@ -93,7 +103,6 @@ public class GameManager : MonoBehaviour
         {
             deck = Shuffle(discardPile);
             discardPile = new List<Card>();
-            gameState = GameState.EnemyTurn;
         }
 
         // Move the top card to the current card
@@ -108,18 +117,6 @@ public class GameManager : MonoBehaviour
         // currentCard.GetComponent<MeshRenderer>().material.color = Color.red;
 
         DebugCardLists();
-    }
-
-    public void CheckEndConditions()
-    {
-        if (player.currentHealth <= 0)
-        {
-            gameState = GameState.Lose;
-        }
-        else if (currentEnemy.currentHealth <= 0)
-        {
-            gameState = GameState.Win;
-        }
     }
 
     private List<Card> Shuffle(List<Card> cards)
@@ -171,48 +168,28 @@ public class GameManager : MonoBehaviour
         rightAction = new Action();
         rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
         leftAction = new Action();
-        leftAction.Initalize("Shield 1", Action.Actions.Shield, 1);
-        card.Initalize("Starter 0", leftAction, rightAction);
+        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
+        card.Initalize("Basic 2", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
         rightAction = new Action();
-        rightAction.Initalize("Attack 9", Action.Actions.Attack, 9);
+        rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
         leftAction = new Action();
-        leftAction.Initalize("Shield 2", Action.Actions.Shield, 2);
-        card.Initalize("Starter 1", leftAction, rightAction);
+        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
+        card.Initalize("Basic 2", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
         rightAction = new Action();
-        rightAction.Initalize("Attack 8", Action.Actions.Attack, 8);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 3", Action.Actions.Shield, 3);
-        card.Initalize("Starter 2", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 7", Action.Actions.Attack, 7);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 4", Action.Actions.Shield, 4);
-        card.Initalize("Starter 3", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 6", Action.Actions.Attack, 6);
+        rightAction.Initalize("Attack 5", Action.Actions.Attack, 10);
         leftAction = new Action();
         leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
-        card.Initalize("Starter 4", leftAction, rightAction);
+        card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
@@ -221,48 +198,18 @@ public class GameManager : MonoBehaviour
         rightAction = new Action();
         rightAction.Initalize("Attack 5", Action.Actions.Attack, 5);
         leftAction = new Action();
-        leftAction.Initalize("Shield 6", Action.Actions.Shield, 6);
-        card.Initalize("Starter 5", leftAction, rightAction);
+        leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
+        card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
         rightAction = new Action();
-        rightAction.Initalize("Attack 4", Action.Actions.Attack, 4);
+        rightAction.Initalize("Attack 5", Action.Actions.Attack, 5);
         leftAction = new Action();
-        leftAction.Initalize("Shield 7", Action.Actions.Shield, 7);
-        card.Initalize("Starter 6", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 3", Action.Actions.Attack, 3);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 8", Action.Actions.Shield, 8);
-        card.Initalize("Starter 7", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 2", Action.Actions.Attack, 2);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 9", Action.Actions.Shield, 9);
-        card.Initalize("Starter 8", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 1", Action.Actions.Attack, 1);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 10", Action.Actions.Shield, 10);
-        card.Initalize("Starter 9", leftAction, rightAction);
+        leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
+        card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);

@@ -19,7 +19,7 @@ public class Player : MonoBehaviour
 
         if (shield > 0)
         {
-            _gameManager.playerStatusText.text += "Sheild: " + shield + "\n";
+            _gameManager.playerStatusText.text += "Shield: " + shield + "\n";
         }
     }
 }
