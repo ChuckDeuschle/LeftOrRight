@@ -13,7 +13,7 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
     public void OnDrag(PointerEventData eventData)
     {
         Vector3 mousePosition = Input.mousePosition;
-        mousePosition.z = 7.95f;// Set this to the distance between the camera and the card if it's not at the same distance as the nearClipPlane
+        mousePosition.z = 7.7f;// Set this to the distance between the camera and the card if it's not at the same distance as the nearClipPlane
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
         transform.position = worldPosition;
     }
