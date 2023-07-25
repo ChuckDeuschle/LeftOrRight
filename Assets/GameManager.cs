@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -20,13 +21,15 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI enemyHealthText;
     public TextMeshProUGUI playerStatusText;
     public TextMeshProUGUI enemyStatusText;
+    public TextMeshProUGUI winText;
 
     public GameObject GameOverPanel;
     public GameObject WinPanel;
 
-
     public enum GameState { PlayerTurn, EnemyTurn, Win, Lose };
     public GameState gameState;
+
+    public int awardCardSelection;
 
     private void Start()
     {
@@ -34,23 +37,35 @@ public class GameManager : MonoBehaviour
         gameState = GameState.PlayerTurn;
         currentCard = GameObject.Find("Card");
         discardPile = new List<Card>();
-        deck = CreateStarterDeck();
-        Destroy(currentCard);
-
-        // ... initialize player and first enemy
-        player = new Player();
-        player.Initalize(100); // set appropriate starting values
-        currentEnemy = new Enemy();
-        currentEnemy.Initalize(50);
+        
+        // If we're not coming from the encounter select screen, initalize with some defaults
+        if (MasterGameManager.instance == null)
+        {
+            deck = CreateStarterDeck();
+            player = new Player();
+            player.Initalize(100, 0);
+            currentEnemy = new Enemy();
+            currentEnemy.Initalize("Enemy 1", 50);
+        }
+        // If we have a MasterGameManager, pull from that instead
+        else
+        {
+            deck = MasterGameManager.instance.deck;
+            player = MasterGameManager.instance.player;
+            currentEnemy = MasterGameManager.instance.selectedEncounter.enemy;
+        }
 
         // Shuffle the deck
         deck = Shuffle(deck);
+
+        Destroy(currentCard);
 
         // Draw the top card
         DrawCard();
 
         UpdateHealthDisplay();
         UpdateStatusDisplays();
+        UpdateWinDisplay();
     }
 
     public void Update()
@@ -82,7 +97,20 @@ public class GameManager : MonoBehaviour
                 break;
             case GameState.Win:
                 // Handle victory
-                // Could show a victory screen, start a new game, etc.
+                // Could show a victory screen, put discarded cards back into deck and current card as well
+                if (discardPile.Count > 0)
+                {
+                    deck.AddRange(discardPile);
+                    discardPile.Clear();
+                }
+                if (currentCard.activeSelf)
+                {
+                    currentCard.SetActive(false);
+                    deck.Add(currentCard.GetComponent<Card>());
+                }
+
+                MasterGameManager.instance.deck = deck;
+                
                 WinPanel.SetActive(true);
                 break;
             case GameState.Lose:
@@ -150,6 +178,11 @@ public class GameManager : MonoBehaviour
         currentEnemy.UpdateEnemyStatus(this);
     }
 
+    public void UpdateWinDisplay()
+    {
+        winText.text = "You have defeated " + currentEnemy.name + "!\nYou gain " + MasterGameManager.instance.selectedEncounter.goldAward + " gold.\nChoose a card to add to your deck:";
+    }
+
     public void DebugCardLists()
     {
         Debug.Log("Current Card: " + currentCard.GetComponent<Card>().cardName);
@@ -157,33 +190,13 @@ public class GameManager : MonoBehaviour
         Debug.Log("Discard Pile: " + string.Join(", ", discardPile.Select(c => c.cardName)));
     }
 
-    private List<Card> CreateStarterDeck()
+    public List<Card> CreateStarterDeck()
     {
         List<Card> newDeck = new List<Card>();
         Card card;
         Action leftAction, rightAction;
 
         // 10 starter Attack/Shield cards
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
-        card.Initalize("Basic 2", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
-        card = Instantiate(cardPrefab).GetComponent<Card>();
-        rightAction = new Action();
-        rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
-        leftAction = new Action();
-        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
-        card.Initalize("Basic 2", leftAction, rightAction);
-        newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
-        card.gameObject.SetActive(false);
-
         card = Instantiate(cardPrefab).GetComponent<Card>();
         rightAction = new Action();
         rightAction.Initalize("Attack 5", Action.Actions.Attack, 10);
@@ -210,6 +223,26 @@ public class GameManager : MonoBehaviour
         leftAction = new Action();
         leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
         card.Initalize("Basic 1", leftAction, rightAction);
+        newDeck.Add(card);
+        // Initially, we'll deactivate the card objects
+        card.gameObject.SetActive(false);
+
+        card = Instantiate(cardPrefab).GetComponent<Card>();
+        rightAction = new Action();
+        rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
+        leftAction = new Action();
+        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
+        card.Initalize("Basic 2", leftAction, rightAction);
+        newDeck.Add(card);
+        // Initially, we'll deactivate the card objects
+        card.gameObject.SetActive(false);
+
+        card = Instantiate(cardPrefab).GetComponent<Card>();
+        rightAction = new Action();
+        rightAction.Initalize("Attack 10", Action.Actions.Attack, 10);
+        leftAction = new Action();
+        leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
+        card.Initalize("Basic 2", leftAction, rightAction);
         newDeck.Add(card);
         // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);

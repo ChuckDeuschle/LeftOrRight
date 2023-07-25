@@ -7,6 +7,11 @@ public class StartButton : MonoBehaviour
 {
     public void StartGame()
     {
+        SceneManager.LoadScene("EncountersScene");
+    }
+
+    public void StartEncounter()
+    {
         SceneManager.LoadScene("GameScene");
     }
 }

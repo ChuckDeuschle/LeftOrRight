@@ -9,6 +9,7 @@ public class Card : MonoBehaviour
     public string cardName;
     public Action leftAction;
     public Action rightAction;
+    public Sprite sprite;
 
     [SerializeField]
     private TextMeshPro cardText; // Reference to the text object

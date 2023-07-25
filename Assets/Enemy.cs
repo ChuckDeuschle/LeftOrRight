@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy
 {
     public int currentHealth;
+    public string name;
 
-    public void Initalize(int _startingHealth)
+    public void Initalize(string _name, int _startingHealth)
     {
+        name = _name;
         currentHealth = _startingHealth;
     }
 

@@ -2,14 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player
 {
     public int currentHealth;
-    public int shield;
+    public int shield = 0;
+    public int goldValue = 0;
 
-    public void Initalize(int _startingHealth)
+    public void Initalize(int _startingHealth, int _goldValue)
     {
         currentHealth = _startingHealth;
+        goldValue = _goldValue;
     }
 
     public void UpdatePlayerStatus(GameManager _gameManager)
