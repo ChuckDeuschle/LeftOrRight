@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class MasterGameManager : MonoBehaviour
 {
-    public static MasterGameManager instance = null;  // Singleton instance
+    private static MasterGameManager _instance;
+    public static MasterGameManager instance => _instance;
 
     // Game Data
     public Player player;
@@ -18,16 +19,22 @@ public class MasterGameManager : MonoBehaviour
 
     void Awake()
     {
-        // Singleton pattern
-        if (instance == null)
+        if (_instance == null)
         {
-            instance = this;
+            _instance = this;
         }
-        else if (instance != this)
+        else if (_instance != this)
         {
             Destroy(gameObject);
+            return;
         }
         DontDestroyOnLoad(gameObject);
+    }
+
+    void OnDestroy()
+    {
+        if (_instance == this)
+            _instance = null;
     }
 
     // Use this for initialization

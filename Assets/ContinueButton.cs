@@ -23,7 +23,9 @@ public class ContinueButton : MonoBehaviour
         }
 
         // Grant player rewards, will want to push this to a reward method later for multiple encounters
-        MasterGameManager.instance.deck.Add(MasterGameManager.instance.selectedEncounter.awardCards[gameManager.awardCardSelection]);
+        List<Card> awardCards = MasterGameManager.instance.selectedEncounter.awardCards;
+        if (gameManager.awardCardSelection >= 0 && gameManager.awardCardSelection < awardCards.Count)
+            MasterGameManager.instance.deck.Add(awardCards[gameManager.awardCardSelection]);
         MasterGameManager.instance.player.goldValue += MasterGameManager.instance.selectedEncounter.goldAward;
         SceneManager.LoadScene("EncountersScene");
     }

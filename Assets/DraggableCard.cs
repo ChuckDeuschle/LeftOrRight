@@ -4,6 +4,12 @@ using UnityEngine.EventSystems;
 public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private Vector3 originalPosition;
+    private Camera _camera;
+
+    private void Start()
+    {
+        _camera = Camera.main;
+    }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -12,10 +18,10 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (_camera == null) return;
         Vector3 mousePosition = Input.mousePosition;
-        mousePosition.z = 7.7f;// Set this to the distance between the camera and the card if it's not at the same distance as the nearClipPlane
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        transform.position = worldPosition;
+        mousePosition.z = 7.7f;
+        transform.position = _camera.ScreenToWorldPoint(mousePosition);
     }
 
     public void OnEndDrag(PointerEventData eventData)
