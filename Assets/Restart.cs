@@ -7,7 +7,7 @@ public class Restart : MonoBehaviour
 {
     public void RestartGame()
     {
-        Destroy(MasterGameManager.instance);
-        SceneManager.LoadScene("EncountersScene");
+        Destroy(MasterGameManager.instance.gameObject);
+        SceneManager.LoadScene("PrototypeSelectScene");
     }
 }

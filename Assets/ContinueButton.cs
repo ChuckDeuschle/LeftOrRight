@@ -10,21 +10,26 @@ public class ContinueButton : MonoBehaviour
 
     public void ContinueGame()
     {
-        // Complete the encounter
-        MasterGameManager.instance.selectedEncounter.currentStatus = Encounter.Status.complete;
+        Encounter completedEncounter = MasterGameManager.instance.selectedEncounter;
+        completedEncounter.currentStatus = Encounter.Status.complete;
 
-        // Set the next encounter in the list to available
+        // Grant rewards from the completed encounter before advancing
+        List<Card> awardCards = completedEncounter.awardCards;
+        if (gameManager.awardCardSelection >= 0 && gameManager.awardCardSelection < awardCards.Count)
+        {
+            MasterGameManager.instance.deck.Add(awardCards[gameManager.awardCardSelection]);
+        }
+        MasterGameManager.instance.player.goldValue += completedEncounter.goldAward;
+
+        // Advance selectedEncounter to the next one (if any)
         List<Encounter> encounters = MasterGameManager.instance.encounterList;
-        int selectedEncounterPosition = encounters.IndexOf(MasterGameManager.instance.selectedEncounter);
+        int selectedEncounterPosition = encounters.IndexOf(completedEncounter);
         if (selectedEncounterPosition + 1 < encounters.Count)
         {
             encounters[selectedEncounterPosition + 1].currentStatus = Encounter.Status.available;
             MasterGameManager.instance.selectedEncounter = encounters[selectedEncounterPosition + 1];
         }
 
-        // Grant player rewards, will want to push this to a reward method later for multiple encounters
-        MasterGameManager.instance.deck.Add(MasterGameManager.instance.selectedEncounter.awardCards[gameManager.awardCardSelection]);
-        MasterGameManager.instance.player.goldValue += MasterGameManager.instance.selectedEncounter.goldAward;
         SceneManager.LoadScene("EncountersScene");
     }
 }

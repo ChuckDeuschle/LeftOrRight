@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using TMPro;
 using UnityEngine;
 
 public class DeckView : MonoBehaviour
 {
-    public Transform contentPanel; // Assign Content Transform in Inspector
-    public GameManager gameManager; // Reference to GameManager to access deck
+    public Transform contentPanel;
+    public GameManager gameManager;
     public GameObject deckViewPanel;
     public GameObject closeDeckViewButton;
     public TextMeshProUGUI scrollViewText;
@@ -20,35 +21,31 @@ public class DeckView : MonoBehaviour
 
     public void PopulateDeckView(List<Card> _deck)
     {
-        scrollViewText.text = "";
-
-        // For each card in the deck, add its name to the Scroll View's text
-        foreach (Card card in _deck.OrderBy(card => card.cardName))
+        var sb = new StringBuilder();
+        foreach (Card card in _deck.OrderBy(c => c.cardName))
         {
-            scrollViewText.text += card.cardName + " " + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label + "\n";
+            sb.AppendLine(card.cardName + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label);
         }
+        scrollViewText.text = sb.ToString();
 
-        // Enable the deck view panel and close button
         deckViewPanel.SetActive(true);
         closeDeckViewButton.SetActive(true);
     }
 
     public void PopulateDeckViewDiscard(List<Card> _discardPile)
     {
-        scrollViewText.text += "Discard:\n";
-
-        // For each card in the discard, add its name to the Scroll View's text
+        var sb = new StringBuilder(scrollViewText.text);
+        sb.AppendLine("Discard:");
         foreach (Card card in _discardPile)
         {
-            scrollViewText.text += card.cardName + " " + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label + "\n";
+            sb.AppendLine(card.cardName + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label);
         }
+        scrollViewText.text = sb.ToString();
     }
 
     public void CloseDeckView()
     {
-        // Disable the deck view panel and close button
         deckViewPanel.SetActive(false);
         closeDeckViewButton.SetActive(false);
-
     }
 }

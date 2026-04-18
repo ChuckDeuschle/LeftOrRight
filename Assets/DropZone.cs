@@ -27,6 +27,7 @@ public class DropZone : MonoBehaviour, IDropHandler
         if (draggableCard != null)
         {
             Card playedCard = eventData.pointerDrag.GetComponent<Card>();
+            if (playedCard == null) return;
 
             // A card was dropped on this box
             // Update health as necessary

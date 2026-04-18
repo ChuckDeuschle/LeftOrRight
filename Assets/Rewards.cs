@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,23 +18,30 @@ public class Rewards : MonoBehaviour
     void SelectCard(Button selectedCard)
     {
         card1Button.image.color = card1Button.colors.normalColor;
-        card2Button.image.color = card1Button.colors.normalColor;
-        card3Button.image.color = card1Button.colors.normalColor;
+        card2Button.image.color = card2Button.colors.normalColor;
+        card3Button.image.color = card3Button.colors.normalColor;
 
         selectedCard.image.color = selectedCard.colors.highlightedColor;
 
-        if (selectedCard == card1Button ) 
+        if (selectedCard == card1Button)
         {
-            gameManager.awardCardSelection = 1;
+            gameManager.awardCardSelection = 0;
         }
         else if (selectedCard == card2Button)
         {
-            gameManager.awardCardSelection = 2;
+            gameManager.awardCardSelection = 1;
         }
         else
         {
-            gameManager.awardCardSelection = 3;
+            gameManager.awardCardSelection = 2;
         }
+    }
+
+    void OnDestroy()
+    {
+        card1Button.onClick.RemoveAllListeners();
+        card2Button.onClick.RemoveAllListeners();
+        card3Button.onClick.RemoveAllListeners();
     }
 
     public void UpdateRewardsCards(List<Card> _rewards)

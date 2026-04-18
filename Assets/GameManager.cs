@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -29,7 +28,7 @@ public class GameManager : MonoBehaviour
     public enum GameState { PlayerTurn, EnemyTurn, Win, Lose };
     public GameState gameState;
 
-    public int awardCardSelection;
+    public int awardCardSelection = -1;
 
     private void Start()
     {
@@ -109,8 +108,11 @@ public class GameManager : MonoBehaviour
                     deck.Add(currentCard.GetComponent<Card>());
                 }
 
-                MasterGameManager.instance.deck = deck;
-                
+                if (MasterGameManager.instance != null)
+                {
+                    MasterGameManager.instance.deck = deck;
+                }
+
                 WinPanel.SetActive(true);
                 break;
             case GameState.Lose:
@@ -180,7 +182,10 @@ public class GameManager : MonoBehaviour
 
     public void UpdateWinDisplay()
     {
-        winText.text = "You have defeated " + currentEnemy.name + "!\nYou gain " + MasterGameManager.instance.selectedEncounter.goldAward + " gold.\nChoose a card to add to your deck:";
+        string goldText = MasterGameManager.instance != null
+            ? MasterGameManager.instance.selectedEncounter.goldAward + " gold"
+            : "some gold";
+        winText.text = "You have defeated " + currentEnemy.name + "!\nYou gain " + goldText + ".\nChoose a card to add to your deck:";
     }
 
     public void DebugCardLists()
