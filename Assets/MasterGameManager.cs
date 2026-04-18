@@ -47,7 +47,9 @@ public class MasterGameManager : MonoBehaviour
     void OnDestroy()
     {
         if (_instance == this)
+        {
             _instance = null;
+        }
     }
 
     public List<Card> CreateStarterDeck()

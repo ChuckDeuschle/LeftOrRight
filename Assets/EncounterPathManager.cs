@@ -22,7 +22,9 @@ public class EncounterPathManager : MonoBehaviour
 
         var sb = new StringBuilder();
         foreach (Card card in MasterGameManager.instance.deck.OrderBy(c => c.cardName))
+        {
             sb.AppendLine(card.cardName + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label);
+        }
         deckListText.text = sb.ToString();
     }
 }

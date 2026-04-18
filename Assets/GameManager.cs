@@ -109,7 +109,9 @@ public class GameManager : MonoBehaviour
                 }
 
                 if (MasterGameManager.instance != null)
+                {
                     MasterGameManager.instance.deck = deck;
+                }
 
                 WinPanel.SetActive(true);
                 break;

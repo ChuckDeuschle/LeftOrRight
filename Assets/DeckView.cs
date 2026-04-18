@@ -23,7 +23,9 @@ public class DeckView : MonoBehaviour
     {
         var sb = new StringBuilder();
         foreach (Card card in _deck.OrderBy(c => c.cardName))
+        {
             sb.AppendLine(card.cardName + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label);
+        }
         scrollViewText.text = sb.ToString();
 
         deckViewPanel.SetActive(true);
@@ -35,7 +37,9 @@ public class DeckView : MonoBehaviour
         var sb = new StringBuilder(scrollViewText.text);
         sb.AppendLine("Discard:");
         foreach (Card card in _discardPile)
+        {
             sb.AppendLine(card.cardName + " Left: " + card.leftAction.Label + ", Right: " + card.rightAction.Label);
+        }
         scrollViewText.text = sb.ToString();
     }
 
