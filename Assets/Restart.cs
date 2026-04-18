@@ -8,6 +8,6 @@ public class Restart : MonoBehaviour
     public void RestartGame()
     {
         Destroy(MasterGameManager.instance.gameObject);
-        SceneManager.LoadScene("EncountersScene");
+        SceneManager.LoadScene("PrototypeSelectScene");
     }
 }
