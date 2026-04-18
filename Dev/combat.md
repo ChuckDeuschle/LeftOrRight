@@ -83,12 +83,15 @@ Shield is consumed (reset to 0) at the start of each enemy turn inside `Enemy.En
 
 | Event | What happens |
 |---|---|
-| `Awake()` | Caches the `Image` component |
-| `OnBeginDrag` | Saves `originalPosition`; sets `image.raycastTarget = false` so the card doesn't block drop zone detection |
+| `Awake()` | Caches the `Image` and `Collider` components |
+| `OnEnable()` | Re-enables the `Collider` and `raycastTarget`. Runs every time the card reactivates (e.g. when redrawn from the discard pile), ensuring the card is pickable again after a full deck cycle |
+| `OnBeginDrag` | Saves `originalPosition`; sets `image.raycastTarget = false` and disables the `Collider` so the dragged card doesn't block the PhysicsRaycaster from hitting the drop zones behind it |
 | `OnDrag` | Converts `eventData.position` (screen space) to world space at `z = 7.7f` and moves the card there |
-| `OnEndDrag` | Snaps card back to `originalPosition`; re-enables `raycastTarget` |
+| `OnEndDrag` | Snaps card back to `originalPosition`; re-enables `raycastTarget` and `Collider` |
 
 `OnEndDrag` always snaps back — the actual "consume card" logic happens in `DropZone.OnDrop`, which fires before `OnEndDrag` when a valid drop occurs.
+
+**Why the collider is toggled:** the Card prefab is a 3D quad with a `MeshCollider` (not a UI `Image`), so the PhysicsRaycaster is what routes drop events. If the collider stayed enabled during drag, the raycast would hit the dragged card itself (which follows the cursor) instead of the drop zone behind it, and `OnDrop` would never fire. `OnEnable` is the safety net: when a card is `SetActive(false)` mid-drop by `DropZone.OnDrop`, Unity skips its `OnEndDrag`, which would otherwise leave the collider disabled forever.
 
 ---
 

@@ -6,10 +6,27 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 {
     private Vector3 originalPosition;
     private Image image;
+    private Collider meshCollider;
 
     private void Awake()
     {
         image = GetComponent<Image>();
+        meshCollider = GetComponent<Collider>();
+    }
+
+    // OnEndDrag doesn't fire when the card is SetActive(false) by DropZone mid-drag,
+    // so the collider would stay disabled across a deck cycle. Re-enable on every
+    // activation (DrawCard re-activates the card) to guarantee it's pickable.
+    private void OnEnable()
+    {
+        if (meshCollider != null)
+        {
+            meshCollider.enabled = true;
+        }
+        if (image != null)
+        {
+            image.raycastTarget = true;
+        }
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -18,6 +35,12 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         if (image != null)
         {
             image.raycastTarget = false;
+        }
+        // Disable the card's own collider during drag so the PhysicsRaycaster
+        // can see through it to the drop zones behind. Re-enabled in OnEndDrag.
+        if (meshCollider != null)
+        {
+            meshCollider.enabled = false;
         }
     }
 
@@ -39,7 +62,10 @@ public class DraggableCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
         {
             image.raycastTarget = true;
         }
-        // For now we'll snap the card back to its original position when the drag ends
+        if (meshCollider != null)
+        {
+            meshCollider.enabled = true;
+        }
         transform.position = originalPosition;
     }
 }

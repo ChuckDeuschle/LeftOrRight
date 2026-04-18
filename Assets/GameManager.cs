@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -72,10 +73,149 @@ public class GameManager : MonoBehaviour
 
         DrawCard();
 
+        EnsurePrototypeUI();
+
         UpdateHealthDisplay();
         UpdateStatusDisplays();
         UpdateWinDisplay();
         UpdatePrototypeUI();
+    }
+
+    // Creates the prototype UI (status label, End Turn button, template win/lose panels)
+    // programmatically if they were not wired up in the Inspector. This keeps the
+    // GameScene scene file untouched while still giving every prototype the UI it needs.
+    private void EnsurePrototypeUI()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) { return; }
+
+        if (prototypeStatusText == null)
+        {
+            prototypeStatusText = CreateStatusLabel(canvas);
+        }
+        if (endTurnButton == null)
+        {
+            endTurnButton = CreateEndTurnButton(canvas);
+        }
+        if (templateWinPanel == null)
+        {
+            templateWinPanel = CreateTemplatePanel(canvas, "Prototype Complete!");
+        }
+        if (templateLosePanel == null)
+        {
+            templateLosePanel = CreateTemplatePanel(canvas, "Defeated");
+        }
+    }
+
+    private TextMeshProUGUI CreateStatusLabel(Canvas canvas)
+    {
+        GameObject obj = new GameObject("PrototypeStatus");
+        obj.transform.SetParent(canvas.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 1f);
+        rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0, -50);
+        rt.sizeDelta = new Vector2(500, 60);
+        TextMeshProUGUI text = obj.AddComponent<TextMeshProUGUI>();
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontSize = 32;
+        text.color = Color.white;
+        text.text = "";
+        return text;
+    }
+
+    private GameObject CreateEndTurnButton(Canvas canvas)
+    {
+        GameObject obj = new GameObject("EndTurnButton");
+        obj.transform.SetParent(canvas.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 0f);
+        rt.pivot = new Vector2(1f, 0f);
+        rt.anchoredPosition = new Vector2(-50, 50);
+        rt.sizeDelta = new Vector2(180, 60);
+        Image img = obj.AddComponent<Image>();
+        img.color = new Color(0.85f, 0.3f, 0.3f, 1f);
+        Button btn = obj.AddComponent<Button>();
+        btn.targetGraphic = img;
+        btn.onClick.AddListener(EndPlayerTurn);
+
+        AddButtonLabel(obj, "End Turn", 24);
+        return obj;
+    }
+
+    private GameObject CreateTemplatePanel(Canvas canvas, string titleText)
+    {
+        GameObject panel = new GameObject(titleText == "Defeated" ? "TemplateLosePanel" : "TemplateWinPanel");
+        panel.transform.SetParent(canvas.transform, false);
+        RectTransform rt = panel.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.sizeDelta = Vector2.zero;
+        rt.anchoredPosition = Vector2.zero;
+        Image bg = panel.AddComponent<Image>();
+        bg.color = new Color(0f, 0f, 0f, 0.75f);
+
+        GameObject titleObj = new GameObject("Title");
+        titleObj.transform.SetParent(panel.transform, false);
+        RectTransform titleRt = titleObj.AddComponent<RectTransform>();
+        titleRt.anchorMin = new Vector2(0.5f, 0.5f);
+        titleRt.anchorMax = new Vector2(0.5f, 0.5f);
+        titleRt.pivot = new Vector2(0.5f, 0.5f);
+        titleRt.anchoredPosition = new Vector2(0, 100);
+        titleRt.sizeDelta = new Vector2(700, 100);
+        TextMeshProUGUI title = titleObj.AddComponent<TextMeshProUGUI>();
+        title.text = titleText;
+        title.fontSize = 56;
+        title.alignment = TextAlignmentOptions.Center;
+        title.color = Color.white;
+
+        RetryButton retryComp = panel.AddComponent<RetryButton>();
+
+        GameObject retryBtn = CreatePanelButton(panel, "Retry", new Vector2(-130, -40));
+        retryBtn.GetComponent<Button>().onClick.AddListener(retryComp.RetryPrototype);
+
+        GameObject backBtn = CreatePanelButton(panel, "Back to Menu", new Vector2(130, -40));
+        backBtn.GetComponent<Button>().onClick.AddListener(retryComp.BackToMenu);
+
+        panel.SetActive(false);
+        return panel;
+    }
+
+    private GameObject CreatePanelButton(GameObject parent, string label, Vector2 pos)
+    {
+        GameObject obj = new GameObject(label.Replace(" ", "") + "Button");
+        obj.transform.SetParent(parent.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = new Vector2(220, 60);
+        Image img = obj.AddComponent<Image>();
+        img.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+        Button btn = obj.AddComponent<Button>();
+        btn.targetGraphic = img;
+
+        AddButtonLabel(obj, label, 22);
+        return obj;
+    }
+
+    private void AddButtonLabel(GameObject parent, string label, int fontSize)
+    {
+        GameObject textObj = new GameObject("Label");
+        textObj.transform.SetParent(parent.transform, false);
+        RectTransform rt = textObj.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.sizeDelta = Vector2.zero;
+        rt.anchoredPosition = Vector2.zero;
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontSize = fontSize;
+        text.color = Color.black;
+        text.text = label;
     }
 
     public void Update()
