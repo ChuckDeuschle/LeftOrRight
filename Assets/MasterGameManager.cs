@@ -29,17 +29,7 @@ public class MasterGameManager : MonoBehaviour
             return;
         }
         DontDestroyOnLoad(gameObject);
-    }
 
-    void OnDestroy()
-    {
-        if (_instance == this)
-            _instance = null;
-    }
-
-    // Use this for initialization
-    void Start()
-    {
         player = new Player();
         player.Initalize(100, 0);
 
@@ -47,7 +37,17 @@ public class MasterGameManager : MonoBehaviour
 
         encounterList = CreateEncounterPath();
         selectedEncounter = encounterList[0];
+    }
+
+    void Start()
+    {
         AssignEncountersToButtons();
+    }
+
+    void OnDestroy()
+    {
+        if (_instance == this)
+            _instance = null;
     }
 
     public List<Card> CreateStarterDeck()
