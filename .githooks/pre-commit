@@ -1,0 +1,25 @@
+#!/bin/bash
+# Verify Dev wiki is updated whenever C# scripts are staged for commit.
+
+assets_changed=$(git diff --cached --name-only | grep -E '^Assets/.*\.cs$')
+
+if [ -z "$assets_changed" ]; then
+  exit 0
+fi
+
+wiki_changed=$(git diff --cached --name-only | grep -E '^Dev/')
+
+if [ -z "$wiki_changed" ]; then
+  echo ""
+  echo "  Wiki check: C# files are staged but no Dev/ wiki pages are updated."
+  echo ""
+  echo "  Staged scripts:"
+  echo "$assets_changed" | sed 's/^/    /'
+  echo ""
+  echo "  Update the relevant Dev/ wiki page, stage it, then commit again."
+  echo "  To skip this check: git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+exit 0

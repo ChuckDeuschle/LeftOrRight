@@ -14,40 +14,7 @@ The scene play order is defined in File > Build Settings. Run `SplashScreen` to 
 
 ## Architecture
 
-### Scene Flow
-```
-SplashScreen → EncountersScene → GameScene → EncountersScene (repeats)
-```
-- `StartButton.StartGame()` loads EncountersScene
-- `EncounterSelectionButton` sets the selected encounter on MasterGameManager, then `StartButton.StartEncounter()` loads GameScene
-- `ContinueButton.ContinueGame()` marks the encounter complete, unlocks the next, grants rewards, and returns to EncountersScene
-
-### Cross-Scene State: MasterGameManager
-`MasterGameManager.cs` is a singleton with `DontDestroyOnLoad`. It owns all persistent state:
-- Player data and the deck (as a list of Card GameObjects, also marked DontDestroyOnLoad)
-- The encounter list and the currently selected encounter
-
-GameManager (battle scene) reads from MasterGameManager at scene load; if MasterGameManager doesn't exist it creates local defaults so the GameScene can be run standalone.
-
-### Battle State Machine: GameManager
-`GameManager.cs` runs the per-battle loop via `Update()` with an enum state:
-1. **PlayerTurn** — waits for a card to be dragged to a DropZone; draws cards as needed
-2. **EnemyTurn** — enemy attacks (`currentRound * 10` damage), then returns to PlayerTurn
-3. **Win** — shows reward panel (card selection via `Rewards.cs`)
-4. **Lose** — shows game over panel
-
-### Card & Combat System
-- `Card.cs` — data model with `cardName`, `leftAction`, `rightAction`, sprite, display text
-- `Action.cs` — enum (Attack/Shield) with `Label`, `Magnitude`, and `Play(gameManager)` that directly mutates health/shield
-- `DraggableCard.cs` — implements Unity drag interfaces; moves card to mouse, snaps back on release
-- `DropZone.cs` — detects dropped card, calls the left or right action, moves card to discard pile, draws next card or triggers EnemyTurn
-
-Deck management lives in GameManager: separate `deck` and `discardPile` lists; discard is reshuffled back into deck when deck empties.
-
-### Encounter System
-- `Encounter.cs` — data object: name, description, enemy, goldAward, awardCards, status (available/pending/complete)
-- Encounters are hard-coded in `MasterGameManager.Awake()` — not data-driven
-- `EncounterPathManager.cs` — drives the EncountersScene UI (player health, deck list, encounter details)
+See [Dev/architecture.md](Dev/architecture.md) for scene flow, the GameManager state machine, and cross-scene data ownership. See the full [Dev wiki](Dev/INDEX.md) for all systems and scripts.
 
 ## Development Environment
 
@@ -64,9 +31,30 @@ The `.vscode/` folder is committed to the repo and pre-configures file exclusion
 - Main branch: `master`
 - Do **not** add `Co-Authored-By:` lines to commit messages.
 
+**Git hooks:** A pre-commit hook in `.githooks/pre-commit` blocks commits that stage `.cs` changes without also staging a `Dev/` wiki update. After a fresh clone, activate it once with:
+```
+git config core.hooksPath .githooks
+```
+
 ## Key Conventions
 
-- **`Initalize()` method** (note the typo) — every game entity uses this name consistently; preserve the typo when adding new entities
-- All C# scripts are in `Assets/` root — no subdirectories, no namespaces
-- Cards and encounters are created procedurally in code, not via ScriptableObjects or JSON
-- TextMeshPro (`TMPro`) is used for all UI text
+See [Dev/conventions.md](Dev/conventions.md) for the full list, including the intentional `Initalize()` typo, file layout rules, data model patterns, and TMPro usage.
+
+## Wikis
+
+Two wikis live in the repo root and must be kept current:
+
+| Wiki | Path | Covers |
+|---|---|---|
+| Dev | `Dev/INDEX.md` | All C# scripts, systems, architecture, conventions |
+| Design | `Design/INDEX.md` | Vision, gameplay prototypes, design decisions |
+
+**Before making changes:** Read the relevant wiki page first — do not explore raw files if the wiki covers the area.
+
+**When making changes:** Update the relevant wiki page in the same task — not as a follow-up. A wiki that drifts behind the code actively misleads future sessions.
+
+- Code change (new/modified script, new scene, renamed field) → update the relevant `Dev/` page
+- Design decision (new mechanic, prototype iteration) → update the relevant `Design/` page
+- New script → add it to the appropriate `Dev/` topic page with a link to its `.cs` file
+
+**Dev wiki link convention:** Script file references use relative links from the `Dev/` folder: `[Assets/FileName.cs](../Assets/FileName.cs)`. Scene `.unity` files are binary and not linked — leave scene names as plain text.
