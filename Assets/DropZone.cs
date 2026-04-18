@@ -23,41 +23,33 @@ public class DropZone : MonoBehaviour, IDropHandler
     public void OnDrop(PointerEventData eventData)
     {
         DraggableCard draggableCard = eventData.pointerDrag.GetComponent<DraggableCard>();
-        
+
         if (draggableCard != null)
         {
             Card playedCard = eventData.pointerDrag.GetComponent<Card>();
-            if (playedCard == null) return;
+            if (playedCard == null) { return; }
 
-            // A card was dropped on this box
-            // Update health as necessary
             if (zoneSide == ZoneSide.Left)
             {
                 playedCard.leftAction.Play(gameManager);
-                playedCard.gameObject.SetActive(false);
-                gameManager.discardPile.Add(playedCard);
-                if (gameManager.deck.Count == 0)
-                {
-                    gameManager.gameState = GameManager.GameState.EnemyTurn;
-                }
-                else
-                {
-                    gameManager.DrawCard();
-                }
             }
             else if (zoneSide == ZoneSide.Right)
             {
                 playedCard.rightAction.Play(gameManager);
-                playedCard.gameObject.SetActive(false);
-                gameManager.discardPile.Add(playedCard);
-                if (gameManager.deck.Count == 0)
-                {
-                    gameManager.gameState = GameManager.GameState.EnemyTurn;
-                }
-                else
-                {
-                    gameManager.DrawCard();
-                }
+            }
+
+            playedCard.gameObject.SetActive(false);
+            gameManager.discardPile.Add(playedCard);
+
+            gameManager.OnCardPlayed(playedCard, zoneSide);
+
+            if (gameManager.deck.Count == 0 || gameManager.activeRules.ShouldInterruptPlayerTurn(gameManager))
+            {
+                gameManager.gameState = GameManager.GameState.EnemyTurn;
+            }
+            else
+            {
+                gameManager.DrawCard();
             }
         }
     }

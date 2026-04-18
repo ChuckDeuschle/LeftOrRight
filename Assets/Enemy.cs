@@ -22,10 +22,10 @@ public class Enemy
 
     public void EnemyAction(GameManager _gameManager)
     {
-        // Attack player 
-        int damage = (_gameManager.currentRound * 10);
+        int baseDamage = _gameManager.currentRound * 10;
+        int damage = _gameManager.activeRules.ModifyEnemyDamage(baseDamage, _gameManager);
         _gameManager.player.currentHealth -= damage < _gameManager.player.shield ? 0 : damage - _gameManager.player.shield;
-        // Set player shield to zero
         _gameManager.player.shield = 0;
+        _gameManager.activeRules.OnEnemyTurnEnd(_gameManager);
     }
 }

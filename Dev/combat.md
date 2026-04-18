@@ -18,12 +18,23 @@ Player releases over a DropZone (DropZone.OnDrop)
     ├── calls card.leftAction.Play(gameManager)  OR  card.rightAction.Play(gameManager)
     │       └── Action.Play() mutates enemy.currentHealth  OR  player.shield
     ├── moves card GameObject to discardPile
-    └── if deck is not empty → GameManager.DrawCard()
-        else if deck empty after reshuffle still no card → transitions to EnemyTurn
+    ├── calls GameManager.OnCardPlayed(card, side) → activeRules.OnCardPlayed()
+    └── if deck empty OR activeRules.ShouldInterruptPlayerTurn() → transitions to EnemyTurn
+        else → GameManager.DrawCard()
+
+Player clicks "End Turn" button (optional, shown when activeRules.ShowEndTurnButton() == true)
+    └── GameManager.EndPlayerTurn() → transitions to EnemyTurn immediately
 
 Enemy turn (GameManager.Update detects EnemyTurn state)
-    └── Enemy.EnemyAction(gameManager) → damages player health reduced by shield
+    └── Enemy.EnemyAction(gameManager)
+            ├── baseDamage = currentRound * 10
+            ├── damage = activeRules.ModifyEnemyDamage(baseDamage, gm)
+            ├── damages player health reduced by shield; resets shield to 0
+            ├── activeRules.OnEnemyTurnEnd(gm)
             └── gameState returns to PlayerTurn
+
+GameManager.Update() PlayerTurn — draws next card when currentCard is inactive
+    └── covers both natural deck exhaustion (reshuffle) and mid-turn interrupt recovery
 ```
 
 If card is released outside a drop zone, `DraggableCard.OnEndDrag` snaps it back to its original position.
@@ -96,7 +107,7 @@ Shield is consumed (reset to 0) at the start of each enemy turn inside `Enemy.En
 1. Gets the `DraggableCard` component from the dropped object
 2. Gets the `Card` component from the same object
 3. Executes `card.leftAction.Play(gameManager)` or `card.rightAction.Play(gameManager)` based on `zoneSide`
-4. Adds the card GameObject to `gameManager.discardPile`
-5. Sets `gameManager.currentCard = null`
-6. If `gameManager.deck.Count > 0`: calls `gameManager.DrawCard()`
-7. Otherwise: sets `gameManager.gameState = GameState.EnemyTurn`
+4. Adds the card to `gameManager.discardPile`
+5. Calls `gameManager.OnCardPlayed(card, zoneSide)` — notifies `activeRules`
+6. If `deck.Count == 0` **or** `activeRules.ShouldInterruptPlayerTurn()` returns true: sets `gameState = EnemyTurn`
+7. Otherwise: calls `gameManager.DrawCard()`

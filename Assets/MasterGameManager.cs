@@ -8,9 +8,16 @@ public class MasterGameManager : MonoBehaviour
     private static MasterGameManager _instance;
     public static MasterGameManager instance => _instance;
 
+    public enum PrototypeMode { Baseline, Countdown, Requeue, TrapDeck, Chain, RageTimer }
+
+    // Set by PrototypeButton before scene load; read by GameManager when MGM instance is absent.
+    public static PrototypeMode pendingPrototype = PrototypeMode.Baseline;
+
+    public PrototypeMode selectedPrototype;
+
     // Game Data
     public Player player;
- 
+
     public List<Card> deck;
     public List<Encounter> encounterList;
     public GameObject cardPrefab; // This should be your Card prefab
@@ -211,6 +218,24 @@ public class MasterGameManager : MonoBehaviour
         encounterList.Add(encounter);
 
         return encounterList;
+    }
+
+    public void SetupTemplateEncounter()
+    {
+        player.Initalize(100, 0);
+
+        foreach (Card card in deck)
+        {
+            Destroy(card.gameObject);
+        }
+        deck = CreateStarterDeck();
+
+        Enemy templateEnemy = new Enemy();
+        templateEnemy.Initalize("Training Dummy", 100);
+
+        Encounter templateEncounter = new Encounter();
+        templateEncounter.Initalize("Template Encounter", "", "A training encounter to test prototype rules.", templateEnemy, 0, new List<Card>(), Encounter.Status.available);
+        selectedEncounter = templateEncounter;
     }
 
     public void AssignEncountersToButtons()

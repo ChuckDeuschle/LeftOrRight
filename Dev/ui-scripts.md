@@ -72,6 +72,29 @@ Small single-purpose MonoBehaviours wired to button `onClick` events. None have 
 
 This is the point where `MasterGameManager` first comes into existence — it is created when EncountersScene loads for the first time.
 
+### PrototypeButton
+**File:** [Assets/PrototypeButton.cs](../Assets/PrototypeButton.cs)  
+**Scene:** PrototypeSelectScene
+
+Attach to each per-prototype button. Set `prototypeMode` in the Inspector to the desired `MasterGameManager.PrototypeMode` value.
+
+| Inspector Field | Purpose |
+|---|---|
+| `prototypeMode` | Which prototype rule set this button launches |
+
+| Method | What it does |
+|---|---|
+| `SelectPrototype()` | Sets `MasterGameManager.pendingPrototype` (and `selectedPrototype` + `SetupTemplateEncounter()` if an MGM instance exists), then loads `GameScene` directly — no EncountersScene map |
+
+### RetryButton
+**File:** [Assets/RetryButton.cs](../Assets/RetryButton.cs)  
+**Scene:** GameScene (on templateWinPanel / templateLosePanel)
+
+| Method | What it does |
+|---|---|
+| `RetryPrototype()` | Calls `SetupTemplateEncounter()` on MGM (if present) and reloads `GameScene`; `pendingPrototype` static is still set so rules are preserved |
+| `BackToMenu()` | Destroys `MasterGameManager` if present and loads `PrototypeSelectScene` |
+
 ### Restart
 **File:** [Assets/Restart.cs](../Assets/Restart.cs)
 
