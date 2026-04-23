@@ -46,6 +46,23 @@ At the repo root, edit [deploy.sh](../deploy.sh) and set `ITCH_USER` and `ITCH_P
    The script validates the build exists, pushes to `<user>/<project>:html5`, and prints channel status.
 5. **Verify** — open the public Itch page in an incognito window and confirm the new build loads. If the embed still shows the old game, see *Troubleshooting* below.
 
+## Alpha testing — unlisted access
+
+During alpha, the Itch page is set up as **public-but-unlisted**: testers can load the game from a direct URL, but it doesn't appear in Itch browse/search or on the creator profile. No password or Itch account required.
+
+**One-time dashboard settings** — on [itch.io/dashboard](https://itch.io/dashboard) → *LeftOrRight* → **Edit game**:
+
+- **Visibility & access:** keep set to **Public** (Draft hides it from everyone, including testers).
+- Disable **"Show on profile"** and **"List in browse & search"** so the project is excluded from discovery, then **Save**.
+
+**Share with testers.** Send them `https://cldeuschle.itch.io/left-or-right` — they open it in any browser and play. No login, no password.
+
+**Going fully public later.** Re-enable "Show on profile" and "List in browse & search," then **Save**. No rebuild or redeploy needed.
+
+**If the URL leaks.** Flip visibility to **Restricted** (password-gate) or **Draft** (full lockdown). External search engines (Google, Bing) may still serve a cached copy of the page for a while after delisting on Itch.
+
+The deploy flow itself is unchanged — `./deploy.sh <version>` pushes to the `html5` channel regardless of the page's listing/visibility settings.
+
 ## Running the deploy script (Git Bash on Windows)
 
 Windows PowerShell can't execute `.sh` files directly — `./deploy.sh` just prompts to pick a program. Run it through Git Bash instead (you already have it because Git for Windows ships with it; the repo's `.githooks/pre-commit` depends on it).
