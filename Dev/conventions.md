@@ -12,9 +12,9 @@ Scripts that use it: [Action](../Assets/Action.cs), [Card](../Assets/Card.cs), [
 
 ## File Layout
 
-- All C# scripts live directly in `Assets/` — no subdirectories, no subfolders
+- Gameplay scripts (MonoBehaviours, data models) live directly in `Assets/` at the root level — no nested gameplay folders
+- Editor-only scripts (anything referencing the `UnityEditor` namespace) live in `Assets/Editor/`. Unity automatically excludes the `Editor/` folder from runtime builds, so these scripts don't need `#if UNITY_EDITOR` guards. Example: [Assets/Editor/BuildScript.cs](../Assets/Editor/BuildScript.cs)
 - No namespaces are used anywhere in the project
-- New scripts go in `Assets/` at the root level
 
 ---
 
