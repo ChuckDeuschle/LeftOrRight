@@ -82,10 +82,35 @@ public class GameManager : MonoBehaviour
 
         EnsurePrototypeUI();
 
+        EnsureTutorialPanel();
+
         UpdateHealthDisplay();
         UpdateStatusDisplays();
         UpdateWinDisplay();
         UpdatePrototypeUI();
+    }
+
+    // Creates the tutorial overlay and HUD toggle button, then auto-opens the overlay.
+    // Mode depends on MasterGameManager.isTutorialLaunch: Splash launch shows the Core page
+    // and Close returns to SplashScreen; every other launch is Encounter mode where Close
+    // just hides the overlay (battle state preserved, same pattern as DeckView).
+    private void EnsureTutorialPanel()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) { return; }
+
+        TutorialPanel.PanelMode panelMode = MasterGameManager.isTutorialLaunch
+            ? TutorialPanel.PanelMode.Splash
+            : TutorialPanel.PanelMode.Encounter;
+
+        MasterGameManager.PrototypeMode archetype = MasterGameManager.instance != null
+            ? MasterGameManager.instance.selectedPrototype
+            : MasterGameManager.pendingPrototype;
+
+        TutorialPanel.Create(canvas, this, archetype, panelMode);
+
+        // Consume the flag so a Retry or scene reload doesn't re-enter splash mode.
+        MasterGameManager.isTutorialLaunch = false;
     }
 
     // Creates the prototype UI (status label, End Turn button, template win/lose panels)

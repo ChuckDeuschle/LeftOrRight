@@ -13,6 +13,10 @@ public class MasterGameManager : MonoBehaviour
     // Set by PrototypeButton before scene load; read by GameManager when MGM instance is absent.
     public static PrototypeMode pendingPrototype = PrototypeMode.CoreLoop;
 
+    // Set by TutorialButton on SplashScreen before loading GameScene; read by GameManager
+    // to launch the tutorial overlay in splash-mode (Core page only, Close returns to SplashScreen).
+    public static bool isTutorialLaunch = false;
+
     public PrototypeMode selectedPrototype;
 
     // Game Data

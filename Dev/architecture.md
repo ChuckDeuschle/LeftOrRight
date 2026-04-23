@@ -6,21 +6,24 @@
 
 ```
 SplashScreen
-    └── StartButton.StartGame()
-            └── PrototypeSelectScene
-                    └── PrototypeSelectButton.SelectPrototype0()
-                            └── EncountersScene ◄──────────────────────┐
-                                    │  EncounterSelectionButton sets     │
-                                    │  MasterGameManager.selectedEncounter│
-                                    │  StartButton.StartEncounter()      │
-                                    ▼                                    │
-                                GameScene                                │
-                                    └── ContinueButton.ContinueGame() ──┘
-                            
-                            TutorialScene (reachable from EncountersScene via TutorialButton)
+    ├── StartButton.StartGame()
+    │       └── PrototypeSelectScene
+    │               └── PrototypeSelectButton.SelectPrototype0()
+    │                       └── EncountersScene ◄──────────────────────┐
+    │                               │  EncounterSelectionButton sets     │
+    │                               │  MasterGameManager.selectedEncounter│
+    │                               │  StartButton.StartEncounter()      │
+    │                               ▼                                    │
+    │                           GameScene                                │
+    │                               └── ContinueButton.ContinueGame() ──┘
+    │
+    └── TutorialButton.LoadTutorial()
+            └── GameScene (tutorial splash-mode; TutorialPanel.Close() → SplashScreen)
 ```
 
 Restart destroys MasterGameManager and returns to PrototypeSelectScene, fully resetting state.
+
+The old `TutorialScene.unity` has been retired — the tutorial is now an overlay built on top of GameScene so arrows point at real HUD elements. See [ui-scripts.md#tutorialpanel](ui-scripts.md#tutorialpanel).
 
 ## GameManager State Machine
 
@@ -46,6 +49,7 @@ PlayerTurn or EnemyTurn ──► Lose  (player health ≤ 0)
 | Owner | Data | Lifetime |
 |---|---|---|
 | [`MasterGameManager`](../Assets/MasterGameManager.cs) | `player`, `deck` (Card GameObjects), `encounterList`, `selectedEncounter` | Entire run (DontDestroyOnLoad) |
+| [`MasterGameManager`](../Assets/MasterGameManager.cs) (statics) | `pendingPrototype` (set by PrototypeButton), `isTutorialLaunch` (set by TutorialButton on Splash; consumed by GameManager.Start) | Across scene loads within a run |
 | [`GameManager`](../Assets/GameManager.cs) | `currentCard`, `discardPile`, `currentRound`, UI text refs, `gameState` | Single battle scene |
 
 **Standalone GameScene**: if `MasterGameManager.instance` is null when GameScene loads, `GameManager.Start()` creates a local default player, enemy, and starter deck so the scene can be tested in isolation without running the full flow.
@@ -57,5 +61,4 @@ PlayerTurn or EnemyTurn ──► Lose  (player health ≤ 0)
 | `SplashScreen.unity` | Entry point; shows logo and Start/Tutorial buttons |
 | `PrototypeSelectScene.unity` | Prototype hub; routes to EncountersScene (Prototype 0) |
 | `EncountersScene.unity` | Encounter map; player picks the next battle |
-| `GameScene.unity` | Card battle; the main gameplay loop |
-| `TutorialScene.unity` | How-to-play screen |
+| `GameScene.unity` | Card battle; the main gameplay loop. Also hosts the tutorial overlay (built programmatically by [`TutorialPanel`](../Assets/TutorialPanel.cs)) — see [ui-scripts.md#tutorialpanel](ui-scripts.md#tutorialpanel). |
