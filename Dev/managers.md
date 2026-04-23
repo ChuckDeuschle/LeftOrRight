@@ -133,8 +133,10 @@ Holds per-encounter enemy stats plus the core-loop intent state. Created inside 
 | `countdownLength` | `int` | How many cards each countdown cycle lasts (default 4) |
 | `baseIntentValue` | `int` | The base magnitude that grows with escalation each cycle |
 | `escalationPerCycle` | `int` | How much `baseIntentValue` grows each time the enemy acts (default 3) |
-| `Initalize(name, startingHealth)` | method | Sets identity + HP; picks sensible default intent (Attack 7 in 4 cards, +3 per cycle) |
+| `addsTrap` | `bool` | When true, `EnemyAction` also spawns a trap card. Flipped on by `InfiltratorRules.Initialize`; surfaces in the intent text as "…and add trap" |
+| `Initalize(name, startingHealth)` | method | Sets identity + HP; picks sensible default intent (Attack 7 in 4 cards, +3 per cycle); `addsTrap = false` |
 | `Initalize(name, startingHealth, intentAction, baseIntentValue, countdownLength, escalationPerCycle)` | method | Fully-specified intent config |
-| `UpdateEnemyStatus(gameManager)` | method | Writes the intent + countdown ("Attack 7 in 4 cards") to the GameManager's status text UI |
-| `EnemyAction(gameManager)` | method | Runs the scheduled intent: passes `intentValue` through `activeRules.ModifyEnemyDamage`, then either damages the player (Attack) or heals the enemy (Shield, capped at `startingHealth`). Calls `activeRules.OnEnemyTurnEnd()` — `CoreLoopRules` schedules the next intent there |
+| `UpdateEnemyStatus(gameManager)` | method | Writes the intent to the GameManager's status text UI — e.g. "Intends to attack 7 in 4 cards" or "Intends to attack 7 and add trap in 4 cards" when `addsTrap` is set |
+| `EnemyAction(gameManager)` | method | Runs the scheduled intent: passes `intentValue` through `activeRules.ModifyEnemyDamage`, then either damages the player (Attack) or heals the enemy (Shield, capped at `startingHealth`). If `addsTrap`, calls `SpawnTrap`. Finally calls `activeRules.OnEnemyTurnEnd()` — `CoreLoopRules` schedules the next intent there |
 | `ScheduleNextIntent(gameManager)` | method | Increments `baseIntentValue` by `escalationPerCycle`, resets `intentCountdown` to `countdownLength` |
+| `SpawnTrap(gameManager)` | method | Instantiates a trap card from `gameManager.cardPrefab`, flags `isTrap = true`, inserts at a random deck position |

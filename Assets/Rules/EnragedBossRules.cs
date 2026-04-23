@@ -6,6 +6,17 @@ public class EnragedBossRules : CoreLoopRules
 {
     private int cardsPlayedThisTurn = 0;
     private const int rageThreshold = 5;
+    private const int bossCountdownLength = 8;
+
+    public override void Initialize(GameManager gm)
+    {
+        // Give the boss a longer scheduled cycle than the rage threshold so rage
+        // can actually fire as a mid-cycle interrupt. With the default countdown
+        // of 4 and rage threshold 5, the scheduled attack always beats rage to
+        // the punch and the rage meter is a dead mechanic.
+        gm.currentEnemy.countdownLength = bossCountdownLength;
+        gm.currentEnemy.intentCountdown = bossCountdownLength;
+    }
 
     public override void OnCardPlayed(Card card, DropZone.ZoneSide side, GameManager gm)
     {

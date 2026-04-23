@@ -43,6 +43,22 @@ Design variants:
 
 ---
 
+## The Gambler
+
+Each direction has its own independent crit chance meter, starting at 0%. Every card played in a direction raises that direction's meter by 25%. The next card swiped in that direction has that % chance to crit — doubling its damage or shield. When a crit fires, that direction's meter resets to 0%.
+
+Unlike the Mirror, streaks don't need to be consecutive — the left meter keeps building every time you swipe left, regardless of what you did in between. Left and right accumulate independently.
+
+**Adds:** a slow-burn payoff system. Stacking a direction you don't immediately need becomes a bet — you "waste" cards now for a guaranteed (or near-guaranteed) big hit later.
+
+Design variants:
+- Crit resets fully to 0% after firing, or only partially decays
+- Cap at 100% guaranteed crit, or compound beyond 100% (chained crits, triple effect)
+- Opposite-direction swipes reset the other meter, or preserve it independently
+- Both meters visible, or only the higher one shown
+
+---
+
 ## Encounter Feedback
 
 *(To be filled in after playtesting each archetype)*
@@ -53,3 +69,4 @@ Design variants:
 | Infiltrator | | | |
 | Mirror | | | |
 | Enraged Boss | | | |
+| The Gambler | | | |

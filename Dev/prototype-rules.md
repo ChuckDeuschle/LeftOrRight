@@ -27,6 +27,7 @@ All methods have default no-op / pass-through implementations so subclasses only
 
 | Method | Signature | Default | Purpose |
 |---|---|---|---|
+| `Initialize` | `(GameManager)` | no-op | Called once from `GameManager.Start()` after the enemy/player/deck are resolved. Use to flip compound intents on the enemy (e.g. `enemy.addsTrap = true`) |
 | `OnCardPlayed` | `(Card, ZoneSide, GameManager)` | no-op | Called by `GameManager.OnCardPlayed()` after each card action executes |
 | `ShouldInterruptPlayerTurn` | `(GameManager) → bool` | `false` | If true, `DropZone` triggers `EnemyTurn` instead of drawing the next card |
 | `ModifyEnemyDamage` | `(int baseDamage, GameManager) → int` | pass-through | Adjusts the enemy's scheduled `intentValue` before it's applied |
@@ -70,14 +71,52 @@ Each card played fills a rage meter on top of the normal countdown. When rage re
 | `GetStatusText` | Returns `"Rage: {cardsPlayedThisTurn} / {rageThreshold}"` |
 | `ShowEndTurnButton` | `true` — player can yield before rage fills |
 
-## Archetypes not yet implemented
+## RequeueEnemyRules (Requeue Enemy archetype)
 
-Per [Design/encounters/overview.md](../Design/encounters/overview.md), three more archetypes are planned:
-- **Requeue Enemy** — enemy attacks reorder the deck (left → top, right → bottom)
-- **Infiltrator** — trap cards shuffled into the deck trigger immediate enemy actions when drawn
-- **Mirror** — consecutive same-direction swipes build bonuses; breaking a chain empowers the enemy
+**File:** [Assets/Rules/RequeueEnemyRules.cs](../Assets/Rules/RequeueEnemyRules.cs)
+Inherits from `CoreLoopRules`.
 
-All three should inherit from `CoreLoopRules` so the countdown continues to drive base enemy timing.
+When the enemy acts, the discard pile slams back into the deck — but reordered: cards you played to the **left** go to the **top** of the deck (you see them again soon); cards you played to the **right** go to the **bottom** (pushed further away). The enemy disrupts the rhythm the player was building.
+
+Relies on `GameManager.discardDirections`, a parallel list to `discardPile` populated by `DropZone.OnDrop`.
+
+| Hook | Behavior |
+|---|---|
+| `OnEnemyTurnEnd` | Calls `base` (schedule next intent), then partitions `discardPile` into lefts/rights and rebuilds `deck = lefts + deck + rights`. Clears discard and discardDirections. |
+| `GetStatusText` | Returns `"Requeue: left ↑  right ↓"` as a reminder |
+
+## InfiltratorRules (Infiltrator archetype)
+
+**File:** [Assets/Rules/InfiltratorRules.cs](../Assets/Rules/InfiltratorRules.cs)
+Inherits from `CoreLoopRules`.
+
+The enemy's intent itself is compound — its displayed action reads "Intends to attack 7 and add trap in 4 cards". When the countdown fires, the enemy both executes its attack **and** shuffles a fresh trap card into the deck. Traps accumulate across intent cycles. When a trap is played (regardless of side) it deals a flat 5 damage to the player, reduced by shield.
+
+Trap-spawning itself lives on `Enemy.SpawnTrap(gm)` (gated by `enemy.addsTrap`) so the compound intent reads naturally to the player. Trap cards are flagged `Card.isTrap = true` and have no-op left/right actions.
+
+| Hook | Behavior |
+|---|---|
+| `Initialize` | Sets `gm.currentEnemy.addsTrap = true` — flips the compound intent on for the rest of the encounter |
+| `OnCardPlayed` | Calls `base` (decrement countdown); if `card.isTrap`, applies `trapDamage` (5) to player minus any shield |
+| `GetStatusText` | Returns `"Traps in play: N"` (count of trap cards across deck + discard) |
+
+## MirrorRules (Mirror archetype)
+
+**File:** [Assets/Rules/MirrorRules.cs](../Assets/Rules/MirrorRules.cs)
+Inherits from `CoreLoopRules`.
+
+Consecutive same-direction swipes build a chain. Reaching `chainThreshold` (3) grants a one-time bonus (+5 shield). Breaking a chain that had reached threshold empowers the enemy's next intent (`intentValue += 3`). Rewards rhythm; punishes forced variety.
+
+| Field | Value | Purpose |
+|---|---|---|
+| `chainThreshold` | `3` (const) | Swipes in a row to trigger a bonus or count as "established" before a break penalty |
+| `chainBonusShield` | `5` (const) | Shield granted when the chain hits the threshold |
+| `breakPenalty` | `3` (const) | Damage added to the enemy's scheduled intent when an established chain breaks |
+
+| Hook | Behavior |
+|---|---|
+| `OnCardPlayed` | Calls `base`, then updates chain state. Same direction → increment; hit threshold → grant shield bonus. Different direction → if previous chain reached threshold, bump enemy intent; reset chain. |
+| `GetStatusText` | `"Chain ← 3"` or `"Chain: —"` before any swipe |
 
 ## Adding a New Archetype
 

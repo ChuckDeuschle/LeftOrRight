@@ -2673,7 +2673,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ab6978cd9739a542b1621f987322863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cardPrefab: {fileID: 322701980}
+  cardPrefab: {fileID: 8361655423218177893, guid: 13fd154b8230cc24c90ab6aabe5b4013, type: 3}
   deck: []
   discardPile: []
   currentCard: {fileID: 0}

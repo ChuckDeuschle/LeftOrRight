@@ -11,6 +11,10 @@ public class Card : MonoBehaviour
     public Action rightAction;
     public Sprite sprite;
 
+    // Marks cards that trigger archetype-specific side effects when played
+    // (e.g. Infiltrator traps). Normal starter-deck cards leave this false.
+    public bool isTrap;
+
     [SerializeField]
     private TextMeshPro cardText; // Reference to the text object
 

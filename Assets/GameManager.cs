@@ -14,6 +14,10 @@ public class GameManager : MonoBehaviour
     public List<Card> deck;
     public List<Card> discardPile;
 
+    // Parallel to discardPile — records which side each discarded card was played to.
+    // Used by RequeueEnemyRules to reorder the deck based on swipe direction.
+    public List<DropZone.ZoneSide> discardDirections = new List<DropZone.ZoneSide>();
+
     public GameObject currentCard;
     public int currentRound = 0;
 
@@ -48,6 +52,7 @@ public class GameManager : MonoBehaviour
         gameState = GameState.PlayerTurn;
         currentCard = GameObject.Find("Card");
         discardPile = new List<Card>();
+        discardDirections = new List<DropZone.ZoneSide>();
 
         if (MasterGameManager.instance == null)
         {
@@ -66,6 +71,8 @@ public class GameManager : MonoBehaviour
             player = MasterGameManager.instance.player;
             currentEnemy = MasterGameManager.instance.selectedEncounter.enemy;
         }
+
+        activeRules.Initialize(this);
 
         deck = Shuffle(deck);
 
@@ -127,21 +134,23 @@ public class GameManager : MonoBehaviour
 
     private GameObject CreateEndTurnButton(Canvas canvas)
     {
-        GameObject obj = new GameObject("EndTurnButton");
+        // Sits just to the right of the ViewDeckButton (0, -218, 160×30) for
+        // visual consistency with the other in-battle button.
+        GameObject obj = new GameObject("BraceButton");
         obj.transform.SetParent(canvas.transform, false);
         RectTransform rt = obj.AddComponent<RectTransform>();
-        rt.anchorMin = new Vector2(1f, 0f);
-        rt.anchorMax = new Vector2(1f, 0f);
-        rt.pivot = new Vector2(1f, 0f);
-        rt.anchoredPosition = new Vector2(-50, 50);
-        rt.sizeDelta = new Vector2(180, 60);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(180, -218);
+        rt.sizeDelta = new Vector2(160, 30);
         Image img = obj.AddComponent<Image>();
         img.color = new Color(0.85f, 0.3f, 0.3f, 1f);
         Button btn = obj.AddComponent<Button>();
         btn.targetGraphic = img;
         btn.onClick.AddListener(EndPlayerTurn);
 
-        AddButtonLabel(obj, "End Turn", 24);
+        AddButtonLabel(obj, "Brace", 18);
         return obj;
     }
 
@@ -298,6 +307,7 @@ public class GameManager : MonoBehaviour
         {
             deck = Shuffle(discardPile);
             discardPile = new List<Card>();
+            discardDirections.Clear();
         }
 
         Card card = deck[0];

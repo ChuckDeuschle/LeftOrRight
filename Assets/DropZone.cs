@@ -40,6 +40,7 @@ public class DropZone : MonoBehaviour, IDropHandler
 
             playedCard.gameObject.SetActive(false);
             gameManager.discardPile.Add(playedCard);
+            gameManager.discardDirections.Add(zoneSide);
 
             gameManager.OnCardPlayed(playedCard, zoneSide);
 
