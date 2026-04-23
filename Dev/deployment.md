@@ -21,7 +21,7 @@ Ship WebGL builds of LeftOrRight to [itch.io](https://itch.io) via [butler](http
 In your Itch.io dashboard for the project, set:
 
 - **Kind of project:** HTML
-- **Embed options:** Embed in page, dimensions **960×600** (matches `PlayerSettings.WebGL` screen size)
+- **Embed options:** Embed in page, dimensions **1280×576** (matches `PlayerSettings.WebGL` screen size)
 - **Fullscreen button:** enabled
 
 The Itch `html5` channel is created on first push — no dashboard action needed.
