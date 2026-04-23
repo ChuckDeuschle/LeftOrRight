@@ -1,19 +1,21 @@
-// P5 Rage Timer: each card played fills a rage meter. When the meter fills the
-// enemy attacks immediately (mid-turn interrupt) with bonus damage. The player
-// can voluntarily end their turn early via the End Turn button to avoid the bonus.
-public class RageTimerRules : PrototypeRules
+// Enraged Boss: uses the core loop (intent + countdown) AND a rage meter on top.
+// Rage fills with each card played; when it fills the boss interrupts the scheduled
+// intent and hits harder than the countdown would have allowed. The player can
+// voluntarily end the turn early (End Turn button) to fight the boss at lower rage.
+public class EnragedBossRules : CoreLoopRules
 {
     private int cardsPlayedThisTurn = 0;
     private const int rageThreshold = 5;
 
     public override void OnCardPlayed(Card card, DropZone.ZoneSide side, GameManager gm)
     {
+        base.OnCardPlayed(card, side, gm);
         cardsPlayedThisTurn++;
     }
 
     public override bool ShouldInterruptPlayerTurn(GameManager gm)
     {
-        return cardsPlayedThisTurn >= rageThreshold;
+        return base.ShouldInterruptPlayerTurn(gm) || cardsPlayedThisTurn >= rageThreshold;
     }
 
     public override int ModifyEnemyDamage(int baseDamage, GameManager gm)
@@ -27,6 +29,7 @@ public class RageTimerRules : PrototypeRules
 
     public override void OnEnemyTurnEnd(GameManager gm)
     {
+        base.OnEnemyTurnEnd(gm);
         cardsPlayedThisTurn = 0;
     }
 

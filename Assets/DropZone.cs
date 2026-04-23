@@ -43,7 +43,10 @@ public class DropZone : MonoBehaviour, IDropHandler
 
             gameManager.OnCardPlayed(playedCard, zoneSide);
 
-            if (gameManager.deck.Count == 0 || gameManager.activeRules.ShouldInterruptPlayerTurn(gameManager))
+            // Enemy timing is driven entirely by the active rules (countdown for
+            // the core loop, rage/interrupts for archetypes). An empty deck just
+            // reshuffles from the discard pile — it no longer forces an enemy turn.
+            if (gameManager.activeRules.ShouldInterruptPlayerTurn(gameManager))
             {
                 gameManager.gameState = GameManager.GameState.EnemyTurn;
             }

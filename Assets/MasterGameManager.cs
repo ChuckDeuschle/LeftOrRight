@@ -8,10 +8,10 @@ public class MasterGameManager : MonoBehaviour
     private static MasterGameManager _instance;
     public static MasterGameManager instance => _instance;
 
-    public enum PrototypeMode { Baseline, Countdown, Requeue, TrapDeck, Chain, RageTimer }
+    public enum PrototypeMode { CoreLoop, RequeueEnemy, Infiltrator, Mirror, EnragedBoss }
 
     // Set by PrototypeButton before scene load; read by GameManager when MGM instance is absent.
-    public static PrototypeMode pendingPrototype = PrototypeMode.Baseline;
+    public static PrototypeMode pendingPrototype = PrototypeMode.CoreLoop;
 
     public PrototypeMode selectedPrototype;
 

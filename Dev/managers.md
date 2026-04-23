@@ -115,17 +115,26 @@ Holds persistent player stats for the entire run. Owned by `MasterGameManager`; 
 
 ---
 
-## Enemy
+## Enemy <a id="enemy"></a>
 
-**File:** [Assets/Enemy.cs](../Assets/Enemy.cs)  
+**File:** [Assets/Enemy.cs](../Assets/Enemy.cs)
 **Type:** Plain C# class (not a MonoBehaviour)
 
-Holds per-encounter enemy stats. Created inside each `Encounter` object in `MasterGameManager.CreateEncounterPath()`.
+Holds per-encounter enemy stats plus the core-loop intent state. Created inside each `Encounter` object in `MasterGameManager.CreateEncounterPath()`, and directly by `MasterGameManager.SetupTemplateEncounter()` for the template encounter.
 
 | Member | Type | Purpose |
 |---|---|---|
 | `name` | `string` | Display name |
+| `startingHealth` | `int` | Initial HP (used to cap Shield-intent heals) |
 | `currentHealth` | `int` | Current enemy HP; when this reaches 0 GameManager transitions to Win |
-| `Initalize(name, startingHealth)` | method | Sets both fields |
-| `UpdateEnemyStatus(gameManager)` | method | Writes current enemy health to the GameManager's status text UI |
-| `EnemyAction(gameManager)` | method | Computes `baseDamage = currentRound * 10`, passes it through `activeRules.ModifyEnemyDamage()`, applies the result reduced by `player.shield`, resets shield to 0, then calls `activeRules.OnEnemyTurnEnd()` |
+| `intentAction` | `Action.Actions` | The scheduled action the enemy will perform (`Attack` or `Shield`) |
+| `intentValue` | `int` | Magnitude of the scheduled action; `ModifyEnemyDamage` can adjust this at execution time |
+| `intentCountdown` | `int` | Cards remaining before the scheduled action fires; decremented by `CoreLoopRules.OnCardPlayed` |
+| `countdownLength` | `int` | How many cards each countdown cycle lasts (default 4) |
+| `baseIntentValue` | `int` | The base magnitude that grows with escalation each cycle |
+| `escalationPerCycle` | `int` | How much `baseIntentValue` grows each time the enemy acts (default 3) |
+| `Initalize(name, startingHealth)` | method | Sets identity + HP; picks sensible default intent (Attack 7 in 4 cards, +3 per cycle) |
+| `Initalize(name, startingHealth, intentAction, baseIntentValue, countdownLength, escalationPerCycle)` | method | Fully-specified intent config |
+| `UpdateEnemyStatus(gameManager)` | method | Writes the intent + countdown ("Attack 7 in 4 cards") to the GameManager's status text UI |
+| `EnemyAction(gameManager)` | method | Runs the scheduled intent: passes `intentValue` through `activeRules.ModifyEnemyDamage`, then either damages the player (Attack) or heals the enemy (Shield, capped at `startingHealth`). Calls `activeRules.OnEnemyTurnEnd()` — `CoreLoopRules` schedules the next intent there |
+| `ScheduleNextIntent(gameManager)` | method | Increments `baseIntentValue` by `escalationPerCycle`, resets `intentCountdown` to `countdownLength` |

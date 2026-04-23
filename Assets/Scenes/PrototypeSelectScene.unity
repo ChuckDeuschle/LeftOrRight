@@ -543,7 +543,7 @@ GameObject:
   - component: {fileID: 403}
   - component: {fileID: 405}
   m_Layer: 5
-  m_Name: RageTimerButton
+  m_Name: EnragedBossButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -675,7 +675,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffd286f4384b9064b84c3ab5801789fa, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  prototypeMode: 5
+  prototypeMode: 4
 --- !u!1 &500
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,7 +688,7 @@ GameObject:
   - component: {fileID: 503}
   - component: {fileID: 502}
   m_Layer: 5
-  m_Name: RageTimerButtonText
+  m_Name: EnragedBossButtonText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -733,7 +733,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Rage Timer
+  m_text: Enraged Boss
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -824,7 +824,7 @@ GameObject:
   - component: {fileID: 803}
   - component: {fileID: 805}
   m_Layer: 5
-  m_Name: BaselineButton
+  m_Name: CoreLoopButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -969,7 +969,7 @@ GameObject:
   - component: {fileID: 903}
   - component: {fileID: 902}
   m_Layer: 5
-  m_Name: BaselineButtonText
+  m_Name: CoreLoopButtonText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1014,7 +1014,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Baseline
+  m_text: Core Loop
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

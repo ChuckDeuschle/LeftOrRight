@@ -11,8 +11,8 @@ public abstract class PrototypeRules
     {
         return mode switch
         {
-            MasterGameManager.PrototypeMode.RageTimer => new RageTimerRules(),
-            _ => new BaselineRules()
+            MasterGameManager.PrototypeMode.EnragedBoss => new EnragedBossRules(),
+            _ => new CoreLoopRules()
         };
     }
 }
