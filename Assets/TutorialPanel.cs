@@ -191,10 +191,12 @@ public class TutorialPanel : MonoBehaviour
         AddWorldCallout(page, "↑ Enemy HP", rightZone, new Vector2(0, 160), width: 220, fontSize: 22);
         AddWorldCallout(page, "RIGHT →\nplays the card's RIGHT action", rightZone, new Vector2(0, 40), width: 260, fontSize: 22);
 
-        // Enemy Intent text sits top-right — put callout BELOW it (below-and-up-arrow)
-        // to avoid horizontal collision with the "Enemy HP" callout inside the right drop zone.
+        // Enemy Intent text sits top-right — put callout BELOW it and NUDGED LEFT so the
+        // 320-wide box doesn't clip the right edge of the canvas (Enemy Status is anchored
+        // right-of-center at x=1155 on a 1280-wide canvas; centered 320px would span to
+        // x=1315, clipping by 35px).
         AddCallout(page, "↑ Enemy Intent\nacts when the countdown hits 0",
-            enemyStatus, new Vector2(0, -60), width: 320, fontSize: 20);
+            enemyStatus, new Vector2(-60, -60), width: 320, fontSize: 20);
 
         // Current card callout sits well above the card (card is at world-Y ≈ 5; 220px
         // clears the card art and sits just under the title row).

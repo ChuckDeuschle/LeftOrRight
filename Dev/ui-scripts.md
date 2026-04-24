@@ -105,17 +105,19 @@ Arrows and labels use the lightweight [`TutorialCallout`](#tutorialcallout) comp
 
 **File:** [Assets/TutorialCallout.cs](../Assets/TutorialCallout.cs)
 
-Tiny helper component attached to every tutorial arrow/label. Each `LateUpdate` it reads its target's live position and sets `transform.position = target + pixelOffset`.
+Tiny helper component attached to every tutorial arrow/label. Each `LateUpdate` it reads its target's live position and sets `transform.position = target + pixelOffset * canvas.scaleFactor`.
 
 | Field | Purpose |
 |---|---|
 | `uiTarget` | `RectTransform` on the scene Canvas. Position is read directly — works for Screen Space Overlay. |
 | `worldTarget` | 3D `Transform`. Projected via `worldCamera.WorldToScreenPoint` (camera falls back to `Camera.main`). |
-| `pixelOffset` | Screen-pixel offset from the target. Positive Y is up. |
+| `pixelOffset` | Offset from the target, in the design canvas's logical units (1280×720 reference). Positive Y is up. |
 
 Exactly one of `uiTarget` / `worldTarget` should be set per callout. `TutorialPanel.AddCallout` and `TutorialPanel.AddWorldCallout` wire the component up.
 
-**Why this pattern:** the callouts stay aligned regardless of what the Canvas Scaler is doing at different screen sizes, because they follow the target's post-scaling screen position every frame.
+**Why the scale multiplier:** UI elements' `sizeDelta` is in logical units (scaled by CanvasScaler for rendering), but `transform.position` in Screen Space Overlay is in raw screen pixels. Without multiplying `pixelOffset` by the parent Canvas's current `scaleFactor`, a 160-pixel gap designed at the 720p reference would look correct at 720p but cramped at 1080p (UI 1.5× larger, gap unchanged). Scaling the offset keeps the visual proportions stable across resolutions and fullscreen modes.
+
+**Why live-track every frame:** the callouts stay aligned regardless of what the Canvas Scaler is doing at different screen sizes, because they follow the target's post-scaling screen position every `LateUpdate`.
 
 ---
 
