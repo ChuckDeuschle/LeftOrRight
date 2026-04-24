@@ -194,19 +194,19 @@ public class TutorialPanel : MonoBehaviour
         // Enemy Intent text sits top-right — put callout BELOW it (below-and-up-arrow)
         // to avoid horizontal collision with the "Enemy HP" callout inside the right drop zone.
         AddCallout(page, "↑ Enemy Intent\nacts when the countdown hits 0",
-            enemyStatus, new Vector2(0, -110), width: 320, fontSize: 20);
+            enemyStatus, new Vector2(0, -60), width: 320, fontSize: 20);
 
         // Current card callout sits well above the card (card is at world-Y ≈ 5; 220px
         // clears the card art and sits just under the title row).
-        AddWorldCallout(page, "Current Card ↓ — drag left or right", card, new Vector2(0, 125), width: 420, fontSize: 22);
+        AddWorldCallout(page, "Current Card ↓ — drag left or right", card, new Vector2(0, 160), width: 420, fontSize: 22);
 
         // View Deck button is at bottom-center; callout to its LEFT (below-would-clip).
-        AddCallout(page, "View Deck →\ninspect deck + discard",
-            viewDeck, new Vector2(-200, 0), width: 260, fontSize: 20);
+        AddCallout(page, "View Deck ↑\ninspect deck + discard",
+            viewDeck, new Vector2(0, -40), width: 260, fontSize: 20);
 
         // Basics strip — sits below the drop zones, above the View Deck row.
         AddCallout(page, "Attack deals damage to enemy HP.\nShield blocks enemy attacks — all shield is lost after the enemy acts.",
-            null, new Vector2(0, -150), width: 720, fontSize: 20, centerOnScreen: true);
+            null, new Vector2(0, -165), width: 720, fontSize: 20, centerOnScreen: true);
 
         return page;
     }
@@ -224,31 +224,31 @@ public class TutorialPanel : MonoBehaviour
             case MasterGameManager.PrototypeMode.CoreLoop:
                 AddTitle(page, "Core Encounter", yOffset: -5);
                 AddCallout(page, "This encounter uses only the core loop — no extra twists.",
-                    null, new Vector2(0, -150), width: 640, fontSize: 26, centerOnScreen: true);
+                    null, new Vector2(0, -200), width: 640, fontSize: 26, centerOnScreen: true);
                 break;
 
             case MasterGameManager.PrototypeMode.EnragedBoss:
                 AddTitle(page, "Enraged Boss — beware the rage meter", yOffset: -5);
                 AddCallout(page, "↑ Rage fills as you play cards this turn",
-                    statusRt, new Vector2(0, -100), width: 320, fontSize: 22);
+                    statusRt, new Vector2(0, -100), width: 340, fontSize: 22);
                 AddCallout(page, "5 cards in a turn → the boss INTERRUPTS and hits harder.\nUse Brace to yield before rage fills.",
-                    null, new Vector2(0, -150), width: 560, fontSize: 22, centerOnScreen: true);
-                AddCallout(page, "↓ Brace — end your turn voluntarily",
-                    endTurnRt, new Vector2(160, 25), width: 320, fontSize: 20);
+                    null, new Vector2(0, -200), width: 600, fontSize: 22, centerOnScreen: true);
+                AddCallout(page, "↑ Brace — end your turn voluntarily",
+                    endTurnRt, new Vector2(120, -30), width: 320, fontSize: 20);
                 break;
 
             case MasterGameManager.PrototypeMode.RequeueEnemy:
                 AddTitle(page, "Requeue Enemy — the deck reshuffles against you", yOffset: -5);
-                AddCallout(page, "When the enemy acts, your discard slams back into the deck:\n• LEFT swipes go to the TOP (you see them again soon)\n• RIGHT swipes go to the BOTTOM (pushed away)",
-                    null, new Vector2(0, -150), width: 720, fontSize: 22, centerOnScreen: true);
+                AddCallout(page, "When the enemy acts, your discard slams back into the deck:\n← LEFT swipes go to the TOP (you see them again soon)\n→ RIGHT swipes go to the BOTTOM (pushed away)",
+                    null, new Vector2(0, -200), width: 720, fontSize: 22, centerOnScreen: true);
                 break;
 
             case MasterGameManager.PrototypeMode.Infiltrator:
                 AddTitle(page, "Infiltrator — traps in the deck", yOffset: -5);
-                AddCallout(page, "↑ The enemy's intent is compound:\nattack AND plant a trap when the countdown fires",
-                    enemyStatus, new Vector2(0, -110), width: 360, fontSize: 20);
+                AddCallout(page, "The enemy's intent is compound ↑\nWill attack AND plant a trap when the countdown fires",
+                    enemyStatus, new Vector2(-60, -50), width: 360, fontSize: 20);
                 AddCallout(page, "Playing a trap (either side) hits you for 5 damage, reduced by shield.\nTraps accumulate across intent cycles.",
-                    null, new Vector2(0, -150), width: 640, fontSize: 22, centerOnScreen: true);
+                    null, new Vector2(0, -200), width: 640, fontSize: 22, centerOnScreen: true);
                 break;
 
             case MasterGameManager.PrototypeMode.Mirror:
@@ -256,13 +256,13 @@ public class TutorialPanel : MonoBehaviour
                 AddCallout(page, "↑ Chain tracks consecutive same-direction swipes",
                     statusRt, new Vector2(0, -70), width: 360, fontSize: 22);
                 AddCallout(page, "3 in a row → +5 Shield bonus.\nBreak an established chain → enemy's next attack gains +3 damage.",
-                    null, new Vector2(0, -150), width: 640, fontSize: 22, centerOnScreen: true);
+                    null, new Vector2(0, -200), width: 640, fontSize: 22, centerOnScreen: true);
                 break;
 
             default:
                 AddTitle(page, m.ToString(), yOffset: -5);
                 AddCallout(page, "Tutorial content coming soon.",
-                    null, new Vector2(0, -150), width: 480, fontSize: 24, centerOnScreen: true);
+                    null, new Vector2(0, -200), width: 480, fontSize: 24, centerOnScreen: true);
                 break;
         }
         return page;

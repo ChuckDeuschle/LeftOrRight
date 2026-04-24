@@ -167,7 +167,7 @@ public class GameManager : MonoBehaviour
         rt.anchorMin = new Vector2(0.5f, 0.5f);
         rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(180, -218);
+        rt.anchoredPosition = new Vector2(300, -218);
         rt.sizeDelta = new Vector2(160, 30);
         Image img = obj.AddComponent<Image>();
         img.color = new Color(0.85f, 0.3f, 0.3f, 1f);

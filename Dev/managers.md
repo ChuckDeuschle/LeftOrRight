@@ -67,10 +67,10 @@ Template encounters (used by prototype buttons) bypass this path — `SetupTempl
 | `gameState` | `GameState` enum | Current state: `PlayerTurn`, `EnemyTurn`, `Win`, `Lose` |
 | `activeRules` | `PrototypeRules` | The rule set for the current session; instantiated from `MasterGameManager.selectedPrototype` (or `pendingPrototype`) in `Start()` |
 | `awardCardSelection` | `int` | Index (0/1/2) of the reward card the player selected; -1 if none yet |
-| `prototypeStatusText` | `TextMeshProUGUI` | Inspector-assigned label for prototype state (rage meter, etc.); hidden when empty |
-| `endTurnButton` | `GameObject` | Inspector-assigned button for voluntary end-turn (shown only when `activeRules.ShowEndTurnButton()` returns true) |
-| `templateWinPanel` | `GameObject` | Inspector-assigned panel shown on win in template mode (no MGM) |
-| `templateLosePanel` | `GameObject` | Inspector-assigned panel shown on lose in template mode (no MGM) |
+| `prototypeStatusText` | `TextMeshProUGUI` | Inspector-assignable label for prototype state (rage meter, etc.); auto-created by `EnsurePrototypeUI` if null; hidden when empty |
+| `endTurnButton` | `GameObject` | Inspector-assignable button for voluntary end-turn (shown only when `activeRules.ShowEndTurnButton()` returns true); auto-created by `EnsurePrototypeUI` if null — labelled "Brace" |
+| `templateWinPanel` | `GameObject` | Inspector-assignable panel shown on win in template mode (no MGM); auto-created by `EnsurePrototypeUI` if null |
+| `templateLosePanel` | `GameObject` | Inspector-assignable panel shown on lose in template mode (no MGM); auto-created by `EnsurePrototypeUI` if null |
 | `DrawCard()` | method | Moves top card from deck to `currentCard`; reshuffles discard into deck if deck is empty |
 | `OnCardPlayed(card, side)` | method | Called by `DropZone` after each card action; delegates to `activeRules.OnCardPlayed()` |
 | `EndPlayerTurn()` | method | Sets `gameState = EnemyTurn`; wired to the End Turn button |
@@ -91,6 +91,19 @@ Template encounters (used by prototype buttons) bypass this path — `SetupTempl
 - Enemy base damage per turn = `currentRound * 10`; `activeRules.ModifyEnemyDamage()` adjusts this value
 - `DrawCard()` automatically reshuffles the discard pile if the deck is empty before drawing
 - `Update()` PlayerTurn calls `DrawCard()` whenever `currentCard` is inactive — this covers both natural reshuffle and mid-turn enemy interrupts
+
+### Programmatic UI — EnsurePrototypeUI
+
+Four in-battle UI elements can be Inspector-wired on the `GameManager` GameObject, but any that are left null get built in code on `Start()` via `EnsurePrototypeUI()` (mirrors the `TutorialPanel.Create` pattern — no prefab required). The builders live in `GameManager.cs` and own their own anchor + position values:
+
+| Element | Builder | Position / size at ref 1280×720 |
+|---|---|---|
+| Prototype status label | [`CreateStatusLabel`](../Assets/GameManager.cs#L142) | Top-center stretched 500×60, `anchoredPosition (0, -50)` |
+| Brace / End Turn button | [`CreateEndTurnButton`](../Assets/GameManager.cs#L160) | Center-anchored 160×30, `anchoredPosition (300, -218)` — just right of the ViewDeckButton row |
+| Template Win panel | [`CreateTemplatePanel`](../Assets/GameManager.cs#L182) | Full-screen stretched overlay |
+| Template Lose panel | `CreateTemplatePanel` (same builder) | Full-screen stretched overlay |
+
+To move or restyle any of these, edit the values in the builder method — no scene edit needed. Unity recompiles on focus and GameScene picks up the change on next Play. If a field is already Inspector-assigned (non-null), `EnsurePrototypeUI` skips the auto-create for that element.
 
 ### Enemy Interrupt (Prototype Rules)
 
