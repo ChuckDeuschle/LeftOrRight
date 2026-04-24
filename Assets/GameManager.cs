@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,6 +14,10 @@ public class GameManager : MonoBehaviour
     public List<Card> deck;
     public List<Card> discardPile;
 
+    // Parallel to discardPile — records which side each discarded card was played to.
+    // Used by RequeueEnemyRules to reorder the deck based on swipe direction.
+    public List<DropZone.ZoneSide> discardDirections = new List<DropZone.ZoneSide>();
+
     public GameObject currentCard;
     public int currentRound = 0;
 
@@ -22,6 +27,16 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI enemyStatusText;
     public TextMeshProUGUI winText;
 
+    // Prototype-specific UI — wire these up in the GameScene Inspector.
+    // prototypeStatusText: shows rage meter, chain count, etc. (hidden when empty)
+    // endTurnButton: voluntary end-turn for prototypes that support it (e.g. P5)
+    // templateWinPanel / templateLosePanel: shown instead of the full reward panels
+    //   when playing a template encounter (no MasterGameManager instance present).
+    public TextMeshProUGUI prototypeStatusText;
+    public GameObject endTurnButton;
+    public GameObject templateWinPanel;
+    public GameObject templateLosePanel;
+
     public GameObject GameOverPanel;
     public GameObject WinPanel;
 
@@ -30,41 +45,211 @@ public class GameManager : MonoBehaviour
 
     public int awardCardSelection = -1;
 
+    public PrototypeRules activeRules;
+
     private void Start()
     {
-        // Initialize the game
         gameState = GameState.PlayerTurn;
         currentCard = GameObject.Find("Card");
         discardPile = new List<Card>();
-        
-        // If we're not coming from the encounter select screen, initalize with some defaults
+        discardDirections = new List<DropZone.ZoneSide>();
+
         if (MasterGameManager.instance == null)
         {
+            // Direct launch or template mode without a MasterGameManager in the scene.
+            activeRules = PrototypeRules.CreateForMode(MasterGameManager.pendingPrototype);
             deck = CreateStarterDeck();
             player = new Player();
             player.Initalize(100, 0);
             currentEnemy = new Enemy();
-            currentEnemy.Initalize("Enemy 1", 50);
+            currentEnemy.Initalize("Training Dummy", 100);
         }
-        // If we have a MasterGameManager, pull from that instead
         else
         {
+            activeRules = PrototypeRules.CreateForMode(MasterGameManager.instance.selectedPrototype);
             deck = MasterGameManager.instance.deck;
             player = MasterGameManager.instance.player;
             currentEnemy = MasterGameManager.instance.selectedEncounter.enemy;
         }
 
-        // Shuffle the deck
+        activeRules.Initialize(this);
+
         deck = Shuffle(deck);
 
         Destroy(currentCard);
 
-        // Draw the top card
         DrawCard();
+
+        EnsurePrototypeUI();
+
+        EnsureTutorialPanel();
 
         UpdateHealthDisplay();
         UpdateStatusDisplays();
         UpdateWinDisplay();
+        UpdatePrototypeUI();
+    }
+
+    // Creates the tutorial overlay and HUD toggle button, then auto-opens the overlay.
+    // Mode depends on MasterGameManager.isTutorialLaunch: Splash launch shows the Core page
+    // and Close returns to SplashScreen; every other launch is Encounter mode where Close
+    // just hides the overlay (battle state preserved, same pattern as DeckView).
+    private void EnsureTutorialPanel()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) { return; }
+
+        TutorialPanel.PanelMode panelMode = MasterGameManager.isTutorialLaunch
+            ? TutorialPanel.PanelMode.Splash
+            : TutorialPanel.PanelMode.Encounter;
+
+        MasterGameManager.PrototypeMode archetype = MasterGameManager.instance != null
+            ? MasterGameManager.instance.selectedPrototype
+            : MasterGameManager.pendingPrototype;
+
+        TutorialPanel.Create(canvas, this, archetype, panelMode);
+
+        // Consume the flag so a Retry or scene reload doesn't re-enter splash mode.
+        MasterGameManager.isTutorialLaunch = false;
+    }
+
+    // Creates the prototype UI (status label, End Turn button, template win/lose panels)
+    // programmatically if they were not wired up in the Inspector. This keeps the
+    // GameScene scene file untouched while still giving every prototype the UI it needs.
+    private void EnsurePrototypeUI()
+    {
+        Canvas canvas = FindFirstObjectByType<Canvas>();
+        if (canvas == null) { return; }
+
+        if (prototypeStatusText == null)
+        {
+            prototypeStatusText = CreateStatusLabel(canvas);
+        }
+        if (endTurnButton == null)
+        {
+            endTurnButton = CreateEndTurnButton(canvas);
+        }
+        if (templateWinPanel == null)
+        {
+            templateWinPanel = CreateTemplatePanel(canvas, "Prototype Complete!");
+        }
+        if (templateLosePanel == null)
+        {
+            templateLosePanel = CreateTemplatePanel(canvas, "Defeated");
+        }
+    }
+
+    private TextMeshProUGUI CreateStatusLabel(Canvas canvas)
+    {
+        GameObject obj = new GameObject("PrototypeStatus");
+        obj.transform.SetParent(canvas.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 1f);
+        rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = new Vector2(0, -50);
+        rt.sizeDelta = new Vector2(500, 60);
+        TextMeshProUGUI text = obj.AddComponent<TextMeshProUGUI>();
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontSize = 32;
+        text.color = Color.white;
+        text.text = "";
+        return text;
+    }
+
+    private GameObject CreateEndTurnButton(Canvas canvas)
+    {
+        // Sits just to the right of the ViewDeckButton (0, -218, 160×30) for
+        // visual consistency with the other in-battle button.
+        GameObject obj = new GameObject("BraceButton");
+        obj.transform.SetParent(canvas.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(300, -218);
+        rt.sizeDelta = new Vector2(160, 30);
+        Image img = obj.AddComponent<Image>();
+        img.color = new Color(0.85f, 0.3f, 0.3f, 1f);
+        Button btn = obj.AddComponent<Button>();
+        btn.targetGraphic = img;
+        btn.onClick.AddListener(EndPlayerTurn);
+
+        AddButtonLabel(obj, "Brace", 18);
+        return obj;
+    }
+
+    private GameObject CreateTemplatePanel(Canvas canvas, string titleText)
+    {
+        GameObject panel = new GameObject(titleText == "Defeated" ? "TemplateLosePanel" : "TemplateWinPanel");
+        panel.transform.SetParent(canvas.transform, false);
+        RectTransform rt = panel.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.sizeDelta = Vector2.zero;
+        rt.anchoredPosition = Vector2.zero;
+        Image bg = panel.AddComponent<Image>();
+        bg.color = new Color(0f, 0f, 0f, 0.75f);
+
+        GameObject titleObj = new GameObject("Title");
+        titleObj.transform.SetParent(panel.transform, false);
+        RectTransform titleRt = titleObj.AddComponent<RectTransform>();
+        titleRt.anchorMin = new Vector2(0.5f, 0.5f);
+        titleRt.anchorMax = new Vector2(0.5f, 0.5f);
+        titleRt.pivot = new Vector2(0.5f, 0.5f);
+        titleRt.anchoredPosition = new Vector2(0, 100);
+        titleRt.sizeDelta = new Vector2(700, 100);
+        TextMeshProUGUI title = titleObj.AddComponent<TextMeshProUGUI>();
+        title.text = titleText;
+        title.fontSize = 56;
+        title.alignment = TextAlignmentOptions.Center;
+        title.color = Color.white;
+
+        RetryButton retryComp = panel.AddComponent<RetryButton>();
+
+        GameObject retryBtn = CreatePanelButton(panel, "Retry", new Vector2(-130, -40));
+        retryBtn.GetComponent<Button>().onClick.AddListener(retryComp.RetryPrototype);
+
+        GameObject backBtn = CreatePanelButton(panel, "Back to Menu", new Vector2(130, -40));
+        backBtn.GetComponent<Button>().onClick.AddListener(retryComp.BackToMenu);
+
+        panel.SetActive(false);
+        return panel;
+    }
+
+    private GameObject CreatePanelButton(GameObject parent, string label, Vector2 pos)
+    {
+        GameObject obj = new GameObject(label.Replace(" ", "") + "Button");
+        obj.transform.SetParent(parent.transform, false);
+        RectTransform rt = obj.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = new Vector2(220, 60);
+        Image img = obj.AddComponent<Image>();
+        img.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+        Button btn = obj.AddComponent<Button>();
+        btn.targetGraphic = img;
+
+        AddButtonLabel(obj, label, 22);
+        return obj;
+    }
+
+    private void AddButtonLabel(GameObject parent, string label, int fontSize)
+    {
+        GameObject textObj = new GameObject("Label");
+        textObj.transform.SetParent(parent.transform, false);
+        RectTransform rt = textObj.AddComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.sizeDelta = Vector2.zero;
+        rt.anchoredPosition = Vector2.zero;
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        text.alignment = TextAlignmentOptions.Center;
+        text.fontSize = fontSize;
+        text.color = Color.black;
+        text.text = label;
     }
 
     public void Update()
@@ -81,28 +266,24 @@ public class GameManager : MonoBehaviour
         switch (gameState)
         {
             case GameState.PlayerTurn:
-                // Handle player's turn logic
-                // If player ends turn or runs out of actions, set gameState to EnemyTurn
-                if (deck.Count == 0 && currentCard.activeSelf == false)
+                // Draw a card whenever the active slot is empty (covers both natural
+                // deck exhaustion/reshuffle and mid-turn enemy interrupts).
+                if (currentCard != null && !currentCard.activeSelf)
                 {
                     DrawCard();
                 }
                 break;
             case GameState.EnemyTurn:
-                // Handle enemy's turn logic
-                // If enemy ends turn or runs out of actions, set gameState to PlayerTurn
                 currentEnemy.EnemyAction(this);
                 gameState = GameState.PlayerTurn;
                 break;
             case GameState.Win:
-                // Handle victory
-                // Could show a victory screen, put discarded cards back into deck and current card as well
                 if (discardPile.Count > 0)
                 {
                     deck.AddRange(discardPile);
                     discardPile.Clear();
                 }
-                if (currentCard.activeSelf)
+                if (currentCard != null && currentCard.activeSelf)
                 {
                     currentCard.SetActive(false);
                     deck.Add(currentCard.GetComponent<Card>());
@@ -111,42 +292,73 @@ public class GameManager : MonoBehaviour
                 if (MasterGameManager.instance != null)
                 {
                     MasterGameManager.instance.deck = deck;
+                    WinPanel.SetActive(true);
                 }
-
-                WinPanel.SetActive(true);
+                else
+                {
+                    if (templateWinPanel != null) { templateWinPanel.SetActive(true); }
+                }
                 break;
             case GameState.Lose:
-                // Handle game over
-                // Could show a game over screen, offer to restart, etc.
-                GameOverPanel.SetActive(true);
+                if (MasterGameManager.instance != null)
+                {
+                    GameOverPanel.SetActive(true);
+                }
+                else
+                {
+                    if (templateLosePanel != null) { templateLosePanel.SetActive(true); }
+                }
                 break;
         }
 
         UpdateHealthDisplay();
         UpdateStatusDisplays();
+        UpdatePrototypeUI();
+    }
+
+    public void OnCardPlayed(Card card, DropZone.ZoneSide side)
+    {
+        activeRules.OnCardPlayed(card, side, this);
+    }
+
+    public void EndPlayerTurn()
+    {
+        gameState = GameState.EnemyTurn;
     }
 
     public void DrawCard()
     {
-        // If the deck is now empty, reshuffle the discard pile into a new deck
         if (deck.Count == 0)
         {
             deck = Shuffle(discardPile);
             discardPile = new List<Card>();
+            discardDirections.Clear();
         }
 
-        // Move the top card to the current card
         Card card = deck[0];
         deck.RemoveAt(0);
 
         currentCard = card.gameObject;
 
-        // Activate the card object and place it in the starting position
         currentCard.transform.position = new Vector3(0, 5, -2.1f);
         currentCard.SetActive(true);
-        // currentCard.GetComponent<MeshRenderer>().material.color = Color.red;
 
         DebugCardLists();
+    }
+
+    private void UpdatePrototypeUI()
+    {
+        if (prototypeStatusText != null)
+        {
+            string statusText = activeRules.GetStatusText(this);
+            prototypeStatusText.gameObject.SetActive(!string.IsNullOrEmpty(statusText));
+            prototypeStatusText.text = statusText;
+        }
+
+        if (endTurnButton != null)
+        {
+            endTurnButton.SetActive(activeRules.ShowEndTurnButton(this) && gameState == GameState.PlayerTurn);
+        }
     }
 
     private List<Card> Shuffle(List<Card> cards)
@@ -209,7 +421,6 @@ public class GameManager : MonoBehaviour
         leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
         card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
@@ -219,7 +430,6 @@ public class GameManager : MonoBehaviour
         leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
         card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
@@ -229,7 +439,6 @@ public class GameManager : MonoBehaviour
         leftAction.Initalize("Shield 5", Action.Actions.Shield, 5);
         card.Initalize("Basic 1", leftAction, rightAction);
         newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
@@ -239,7 +448,6 @@ public class GameManager : MonoBehaviour
         leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
         card.Initalize("Basic 2", leftAction, rightAction);
         newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         card = Instantiate(cardPrefab).GetComponent<Card>();
@@ -249,7 +457,6 @@ public class GameManager : MonoBehaviour
         leftAction.Initalize("Shield 3", Action.Actions.Shield, 5);
         card.Initalize("Basic 2", leftAction, rightAction);
         newDeck.Add(card);
-        // Initially, we'll deactivate the card objects
         card.gameObject.SetActive(false);
 
         return newDeck;

@@ -18,13 +18,27 @@ Player releases over a DropZone (DropZone.OnDrop)
     ├── calls card.leftAction.Play(gameManager)  OR  card.rightAction.Play(gameManager)
     │       └── Action.Play() mutates enemy.currentHealth  OR  player.shield
     ├── moves card GameObject to discardPile
-    └── if deck is not empty → GameManager.DrawCard()
-        else if deck empty after reshuffle still no card → transitions to EnemyTurn
+    ├── calls GameManager.OnCardPlayed(card, side) → activeRules.OnCardPlayed()
+    │       └── CoreLoopRules decrements enemy.intentCountdown here
+    └── if activeRules.ShouldInterruptPlayerTurn() → transitions to EnemyTurn
+        else → GameManager.DrawCard()  (reshuffles from discard if needed)
+
+Player clicks "End Turn" button (optional, shown when activeRules.ShowEndTurnButton() == true)
+    └── GameManager.EndPlayerTurn() → transitions to EnemyTurn immediately
 
 Enemy turn (GameManager.Update detects EnemyTurn state)
-    └── Enemy.EnemyAction(gameManager) → damages player health reduced by shield
+    └── Enemy.EnemyAction(gameManager)
+            ├── value = activeRules.ModifyEnemyDamage(intentValue, gm)
+            ├── executes intentAction (Attack → damage player, Shield → heal enemy)
+            ├── activeRules.OnEnemyTurnEnd(gm)
+            │       └── CoreLoopRules calls Enemy.ScheduleNextIntent — countdown reset + escalation
             └── gameState returns to PlayerTurn
+
+GameManager.Update() PlayerTurn — draws next card when currentCard is inactive
+    └── covers both natural deck exhaustion (reshuffle) and mid-turn interrupt recovery
 ```
+
+An empty deck on its own never forces an enemy turn — it just reshuffles from the discard pile. Enemy timing is controlled entirely by the active rules (intent countdown via `CoreLoopRules`, plus archetype-specific interrupts like Enraged Boss's rage meter).
 
 If card is released outside a drop zone, `DraggableCard.OnEndDrag` snaps it back to its original position.
 
@@ -72,12 +86,15 @@ Shield is consumed (reset to 0) at the start of each enemy turn inside `Enemy.En
 
 | Event | What happens |
 |---|---|
-| `Awake()` | Caches the `Image` component |
-| `OnBeginDrag` | Saves `originalPosition`; sets `image.raycastTarget = false` so the card doesn't block drop zone detection |
+| `Awake()` | Caches the `Image` and `Collider` components |
+| `OnEnable()` | Re-enables the `Collider` and `raycastTarget`. Runs every time the card reactivates (e.g. when redrawn from the discard pile), ensuring the card is pickable again after a full deck cycle |
+| `OnBeginDrag` | Saves `originalPosition`; sets `image.raycastTarget = false` and disables the `Collider` so the dragged card doesn't block the PhysicsRaycaster from hitting the drop zones behind it |
 | `OnDrag` | Converts `eventData.position` (screen space) to world space at `z = 7.7f` and moves the card there |
-| `OnEndDrag` | Snaps card back to `originalPosition`; re-enables `raycastTarget` |
+| `OnEndDrag` | Snaps card back to `originalPosition`; re-enables `raycastTarget` and `Collider` |
 
 `OnEndDrag` always snaps back — the actual "consume card" logic happens in `DropZone.OnDrop`, which fires before `OnEndDrag` when a valid drop occurs.
+
+**Why the collider is toggled:** the Card prefab is a 3D quad with a `MeshCollider` (not a UI `Image`), so the PhysicsRaycaster is what routes drop events. If the collider stayed enabled during drag, the raycast would hit the dragged card itself (which follows the cursor) instead of the drop zone behind it, and `OnDrop` would never fire. `OnEnable` is the safety net: when a card is `SetActive(false)` mid-drop by `DropZone.OnDrop`, Unity skips its `OnEndDrag`, which would otherwise leave the collider disabled forever.
 
 ---
 
@@ -96,7 +113,7 @@ Shield is consumed (reset to 0) at the start of each enemy turn inside `Enemy.En
 1. Gets the `DraggableCard` component from the dropped object
 2. Gets the `Card` component from the same object
 3. Executes `card.leftAction.Play(gameManager)` or `card.rightAction.Play(gameManager)` based on `zoneSide`
-4. Adds the card GameObject to `gameManager.discardPile`
-5. Sets `gameManager.currentCard = null`
-6. If `gameManager.deck.Count > 0`: calls `gameManager.DrawCard()`
-7. Otherwise: sets `gameManager.gameState = GameState.EnemyTurn`
+4. Adds the card to `gameManager.discardPile`
+5. Calls `gameManager.OnCardPlayed(card, zoneSide)` — notifies `activeRules` (decrements the countdown etc.)
+6. If `activeRules.ShouldInterruptPlayerTurn()` returns true: sets `gameState = EnemyTurn`
+7. Otherwise: calls `gameManager.DrawCard()` (which reshuffles from discard if the deck is empty)
