@@ -83,7 +83,7 @@ Three buttons live on their own `Canvas` siblings at `sortingOrder = 101` so the
 
 ### Callout positioning
 
-Arrows and labels use the lightweight [`TutorialCallout`](#tutorialcallout) component so they anchor to live HUD elements and follow the Canvas Scaler. Each callout has either a `uiTarget` (a `RectTransform` on the Canvas — player health, enemy status, drop zones in the HUD, etc.) or a `worldTarget` (a world-space `Transform` projected through `Camera.main` — the active card, which `GameManager.DrawCard` parks at world `(0, 5, -2.1)`). Offsets are applied in screen pixels.
+Arrows and labels use the lightweight [`TutorialCallout`](#tutorialcallout) component so they anchor to live HUD elements and follow the Canvas Scaler. Each callout has either a `uiTarget` (a `RectTransform` on the Canvas — player health, enemy status, drop zones in the HUD, etc.) or a `worldTarget` (a world-space `Transform` projected through `Camera.main` — the active card, which `GameManager.DrawCard` parks at world `(0, 5, -2.1)`). Offsets are specified in the design canvas's logical units (1280×720 reference) and multiplied by the active Canvas `scaleFactor` at runtime so spacing stays proportional at 1080p and fullscreen.
 
 ### Public methods
 
