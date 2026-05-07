@@ -9,3 +9,4 @@ A living design document for the LeftOrRight deck-building roguelike. One topic 
 - [cards.md](cards.md) — Card structure: Left, Right, and Combo abilities
 - [encounters/overview.md](encounters/overview.md) — Enemy archetypes that layer mechanics on top of the core loop
 - [tutorial.md](tutorial.md) — Tutorial overlay: two views max (Core + current archetype), auto-opens at encounter start
+- [ideas.md](ideas.md) — Parking lot for half-formed design ideas to revisit later
