@@ -16,7 +16,7 @@ Because each direction is a hand, the hands themselves become a visible characte
 
 The player's two hands are the visual anchor of combat. When a card resolves left, the left hand casts. When a card resolves right, the right hand casts. This opens several design spaces:
 
-- **Rings** on each finger visually represent active relics or passive effects. Different rings for different hands let you telegraph asymmetric builds at a glance.
+- **Rings** are equipped on a specific hand (left or right) and only affect spells cast from that hand. A `+2 shield` ring on the right hand adds shield only when a card is swiped right; the same ring on the left hand would do nothing on a right-swipe. Asymmetric builds are the natural endpoint — a right hand stacked for defense and a left hand stacked for damage tells the story of the run at a glance.
 - **Held items** — weapons, tools, focuses — alter what that hand does. A sword in the right hand might turn right-cast shield cards into counter-attacks; a staff in the left might amplify damage but cost HP.
 - **Visual state** — each hand's condition (crit charge, chain, buffs, rage of a tracked enemy) can live on or around the hand itself, keeping the combat HUD spatial and legible.
 
